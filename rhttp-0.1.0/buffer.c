@@ -1,7 +1,7 @@
 /*
 *主要实现功能，对内存的操作。
 * 作者：Reage
-* blog:http://blog.csdn.net/rentiansheng
+* blog:www.rhttp.cn
 */
 #include <stdio.h>
 #include <stdlib.h>

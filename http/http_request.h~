@@ -1,3 +1,5 @@
+#ifndef _NGX_HTTP_REQUEST_H_INCLUDED_
+#define _NGX_HTTP_REQUEST_H_INCLUDED_
 typedef struct web_conf{
 	char *root;	//web site path
 	char *index_file;

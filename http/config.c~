@@ -1,0 +1,217 @@
+#include "config.h"
+
+char 
+is_char(int c)
+{
+	if( ('Z' >= c && 'A' <= c) || ('z' >= c && 'a' <= c))
+		return 1;
+	return 0;
+}
+
+/*
+*读取配置文件的信息
+*@paramter
+*	path:配置文件存放的信息
+*	globle_conf: 读取的配置文件内容存放的位置
+*@result:
+*/
+int 
+config_init(char *path, http_conf *g)
+{
+	char line[1024];
+	int row;
+	int err;
+
+	FILE * f = fopen(path, "r");
+
+	if(NULL == f) return 1;//文件不存在
+	
+	while(!read_line(f, line, &row)){
+		if(strlen(line) == 0 ) continue;
+		if(err = parse_line(f, line, &row, g)) return err;
+	}
+
+	return 0;
+	
+}
+
+
+
+
+
+int 
+parse_line(FILE *f, char *line,int  *row, http_conf *g) 
+{
+	char *split;
+	char *name;
+	int err;
+	
+	while(!is_char(*line++));
+	name = split = strchr(line, '=');
+	if(split == NULL) return 2;//配置文件错误
+	
+	while(!is_char(*name)) name++;
+
+	if(strncmp(line, "port", 4) == 0){
+		split ++;
+		while(*split == ' ') split++;
+		g->port = atoi(split);
+		if(g->port < 0 || g->port > 65535 
+			|| split != '\n' || split != ' ')return 3;//port不正确
+	}
+	else if(strncmp(line, "web", 3) == 0) {
+		if(err = set_mimetype(f, g, row)) return err;;
+	}
+	else if(strncmp(parent, "web", 3) == 0){
+		if(err = set_web(f, g, row)) return err;
+	}
+	else {
+		return 4;//不能识别的配置节点
+	}
+}
+
+
+int 
+set_mimetype(FILE * f, http_conf *g, int *row)
+{
+	char line[1024];
+	char *name, *split, *end;
+	char *value;
+	int len;
+	struct key *k;
+
+
+	while(read_line(f, line, row)){
+		if(strlen(len) == 0) continue;
+		name = line;
+		while( *name == ' ') name++;
+		split = strchr(name, ':');
+		
+		if(split == NULL)
+		{
+			 strchr(name, ')') == NULL ?return 2:break;
+		}
+		end = split - 1;
+		while(end == ' ' || end >= name) end--;
+		if(end < name) return 5;//配置节点的名字不能为空
+		len = end - name  + 2;
+		value = (char *) malloc(sizeof(char)*(len));
+		if(k == NULL) return MEMERRO;//memory error
+		strncpy(name, value, len);
+		value[len] = 0;
+
+		name = split++;
+		while(*name == ' ') name++;
+		end = split[strlen(split) - 1];
+		while(*end-- == ' ' && end >= name)end --;
+		if(end < name) return 5;//配置节点的名字不能为空
+		len = end - name + 2;
+		
+		k = (struct key *)malloc(sizeof(struct key));
+		if(k == NULL) return MEMERROR;// memory error;
+		k->name = value;
+
+		k->value = (char *)malloc(sizeof(char) * len);
+		if(k->value == NULL) return MEMERROR;
+		strncpy(k->name, name, len);
+		k->name[len] = 0;
+
+		k->next = g->minetyp;
+		g->mimetype = k;
+
+	}
+	return 0;
+}
+
+
+int 
+set_web(FILE *f, http_conf *g, int *row)
+{
+	char line[1024];
+	char *name, *split, *end;
+	char *value,  *item;
+	int len;
+	struct key *k;
+	struct web_conf *web;
+	
+	web = (struct web_conf *)malloc(sizeof(web_conf));
+	if(web == NULL) return MEMERROR;
+
+	while(read_line(f, line, row)){
+		if(strlen(len) == 0) continue;
+		name = line;
+		while( *name == ' ') name++;
+		split = strchr(name, ':');
+		
+		if(split == NULL)
+		{
+			 strchr(name, ')') == NULL ?return 2:break;
+		}
+		end = split - 1;
+		while(end == ' ' || end >= name) end--;
+		if(end < name) return 5;//配置节点的名字不能为空
+		len = end - name  + 2;
+		value = (char *) malloc(sizeof(char)*(len));
+		if(value == NULL) return MEMERRO;//memory error
+		strncpy(name, value, len);
+		value[len] = 0;
+
+		name = split++;
+		while(*name == ' ') name++;
+		end = split[strlen(split) - 1];
+		while(*end-- == ' ' && end >= name)end --;
+		if(end < name) return 5;//配置节点的名字不能为空
+		len = end - name + 2;
+		item = (char *) malloc (sizeof(char)*len);
+		if(item == NULL) return MEMERRO;//memory error
+		strncpy(item, value, len);
+		item[len] = 0;
+		
+		switch(value)
+		{
+			case "root":
+				web->root = item;
+				break;
+			case "indexfiles":
+				web->index_file = item;
+				break;
+			case "404_page":
+				web->err404 = item;
+				break;
+			defalut:
+				return 4;//不能识别的配置节点
+		}
+
+	}
+
+	web->next = g->web;
+	g->web = web;
+	return 0;	
+}
+
+
+int
+read_line(FILE *f, char *line, int *row)
+{
+	int zs = 0;
+	int count;
+	int c;
+	
+	row++;
+	while((c = fgetc(f)) !=EOF){
+		if(zs == 1 && c != '\n') continue;
+		if('#' == c){zs = 1;continue;}
+		if(c == '\t' || c == '"') continue;
+		if(c == '\n'){
+			line[count] = 0;
+
+			return 0;
+		}
+		line[count++] = c;
+
+	}
+	
+	return 1;//read end
+
+}
+

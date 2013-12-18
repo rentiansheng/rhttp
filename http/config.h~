@@ -1,0 +1,13 @@
+/*
+ * Copyright (C) Reage
+ * blog:http://www.rhttp.cn
+ */
+#ifndef _HTTP_CONFIG_H_
+#define _HTTP_CONFIG_H_
+#include "base.h"
+
+int config_init(char *path, globle_conf *g);
+int parse_line(FILE *f, char *line, int *row);
+int read_line(FILE *f, char *line, int * row);
+
+#endif

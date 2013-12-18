@@ -1,4 +1,5 @@
 rhttp
 =====
 
-a simple http web 
+An embedded HTTP server.
+

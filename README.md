@@ -6,16 +6,16 @@ rhttp
 添加Authorized认证<br>
 添加cgi生成内容<br>
 
-已完成功能
-memory pool 内存管理
-authorized认证。在../http/http_mod_authorized.c写认证代码就行了。
-配置文件
-vitrual host支持
-
-未完成功能
-auto index
-cgi
-connnect pool
+已完成功能<br>
+memory pool 内存管理<br>
+authorized认证。在../http/http_mod_authorized.c写认证代码就行了。<br>
+配置文件<br>
+vitrual host支持<br>
+<br>
+未完成功能<br>
+auto index<br>
+cgi<br>
+connnect pool<br>
 
 
 目标<br>

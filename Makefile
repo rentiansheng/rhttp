@@ -1,35 +1,32 @@
-all:reagehttp
+all:obj/reagehttp
+
+
 
 MYHEAD = -I core/ -I http/
 CFLAGS = -g -W -Wall $(MYHEAD) -o
 
-OBJ=reagehttp.o config.o config.o buffer.o pool.o http_mod_connect.o \
-	http_request.o
+OBJ=obj/reagehttp.o obj/config.o obj/config.o obj/base64.o obj/buffer.o obj/pool.o \
+	obj/http_mod_authorized.o obj/http_mod_connect.o \
+	obj/http_request.o obj/http_send_page.o obj/http_virtual_port.o \
+	obj/http_send_html.o
+DST=obj/
 
-reagehttp:$(OBJ)
-	gcc  $(CFLAGS) $@ $^
+obj/reagehttp:$(OBJ)
+	gcc  $(CFLAGS) $@ $^ 
 
-reagehttp.o:http/reagehttp.c
+
+$(DST)%.o:http/%.c
+	echo $^
 	gcc -c $(CFLAGS) $@ $^
 
-config.o:http/config.c
-	gcc  -c $(CFLAGS) $@ $^
-
-buffer.o:core/buffer.c
-	gcc -c $(CFLAGS)  $@ $^
-
-pool.o:core/pool.c
-	gcc -c $(CFLAGS)  $@ $^
-
-http_mod_connect.o:http/http_mod_connect.c
-	gcc -c $(CFLAGS) $@ $^
-
-http_request.o:http/http_request.c
+$(DST)%.o:core/%.c
+	echo $^
 	gcc -c $(CFLAGS) $@ $^
 
 
 clean:
-	rm -rf *.o
+	rm -rf */*.o
+
 
 
 

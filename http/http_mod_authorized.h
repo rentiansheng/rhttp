@@ -5,10 +5,14 @@
 
 #ifndef _HTTP_MOD_AUTHORIZED_H_
 #define _HTTP_MO_AUTHORIZED_H_
-#include <so_dlfcn.h>
 #include <string.h>
 #include "http_mod_connect.h"
 #include "base.h"
+#include "buffer.h"
+#include "http_send_page.h"
+#include "http_request.h"
+
+#define AUTH_PAGES "noauth.html"
 
 int authorized_handle(http_conf *g, http_connect_t *con);
 #endif

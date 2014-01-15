@@ -34,7 +34,7 @@ read_buffer_init_str(pool_t *p, char *b, size_t len)
 
 
 void 
-read_buffer_get_line_split(read_buffer *src, read_buffer *dst, char *split)
+read_buffer_get_line_split(read_buffer *src, read_buffer *dst, char split)
 {
 	char *p, *end;
 
@@ -47,7 +47,9 @@ read_buffer_get_line_split(read_buffer *src, read_buffer *dst, char *split)
 		if(*p == split){
 			dst->ptr = ++p;
 			dst->size = end - p;
+			return;
 		}
+		p++;
 	}
 
 	return ;
@@ -91,7 +93,7 @@ read_buffer_compare(const read_buffer *s1, const read_buffer *s2)
 }
 
 int 
-read_buffer_compare_str(const read_buffer *s1, char *s2)
+read_buffer_compare_str(const read_buffer *s1, const char *s2)
 {
 	int len;
 
@@ -109,7 +111,7 @@ read_buffer_compare_str(const read_buffer *s1, char *s2)
 void 
 read_buffer_to_str_n(read_buffer *b, char *s1, int n)
 {
-	if(b->ptr == NULL || b->size == 0) {s1 = 0;return;}
+	if(b->ptr == NULL || b->size == 0) {*s1 = 0;return;}
 
 	n--;
 

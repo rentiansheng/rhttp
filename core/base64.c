@@ -5,10 +5,9 @@
 
 #include "base64.h"
 
-#define u_char unsigned char
 
-static int encode_base64(const u_char *src, u_char *dst);
-static int decode_base64(const u_char *src, u_char *dst);
+static int encode_base64(const read_buffer *src, buffer *dst);
+static int decode_base64(const read_buffer *src, buffer *dst);
 
 int 
 decoded_usr_pwd(http_connect_t *con)
@@ -22,7 +21,7 @@ decoded_usr_pwd(http_connect_t *con)
 	if(in->authorization ==  NULL)return 0;
 
 	in = con->in;
-	p = in->p;
+	p = (pool_t *)con->p;
 	base64code = in->authorization;
 	len = base64code->size/4 + ((base64code->size)%4)>2?2:1;
 	dst = (buffer *)buffer_create_size(p, len);
@@ -30,7 +29,7 @@ decoded_usr_pwd(http_connect_t *con)
 	in->pwd = NULL;
 
 	if(decode_base64(base64code, dst) == 0){
-		buffer_get_word_split(dst, in->use, ':')
+		buffer_get_word_with_split(dst, in->user, ':');
 		buffer_get_line(dst, in->pwd);
 	}
 
@@ -53,13 +52,13 @@ decode_base64(const read_buffer  *rbsrc, buffer *bdst)
 	};
 
 	int i;
-	u_char *src, *dst;
+	char *src, *dst;
 	size_t len = rbsrc->size;
 	
 	src  = rbsrc->ptr;
 	dst = bdst->ptr;
 	for(i = 0; i < len; i++){
-		if(src[i] == -1){
+		if(base64char[src[i]] == -1){
 			return 1; //unexpected characters
 		}
 		else if(src[i] == '='){
@@ -71,12 +70,12 @@ decode_base64(const read_buffer  *rbsrc, buffer *bdst)
 		return  2; 
 	}
 	
-	dst->used = len/4 + ((len%4)>2?2:1);
-	if(dst->used > dst->size) return -3;
+	bdst->used = len/4 + ((len%4)>2?2:1);
+	if(bdst->used > bdst->size) return -3;
 	while(len > 3){
-		*dst++ = (u_char)(base64char[src[0]]<<2) | (base64char[src[1]]>>4 & 0x3);
-		*dst++ = (u_char)(base64char[src[1]]<<4 )|(base64char[src[2]]>>2 & 0xf);
-		*dst++ = (u_char)(base64char[src[2]]<<6)|(base64char[src[3]]);
+		*dst++ = (base64char[src[0]]<<2) | (base64char[src[1]]>>4 & 0x3);
+		*dst++ = (base64char[src[1]]<<4 )|(base64char[src[2]]>>2 & 0xf);
+		*dst++ = (base64char[src[2]]<<6)|(base64char[src[3]]);
 		
 		src += 4;
 		len -= 4;
@@ -94,15 +93,16 @@ decode_base64(const read_buffer  *rbsrc, buffer *bdst)
 	}
 
 	return 0;
-}
+} 
 
 
 static int 
-encode_base64(const u_char *src, u_char *dst)
+encode_base64(const read_buffer *bsrc, buffer *bdst)
 {
-	
-	size_t len = strlen(src);
-	static u_char base64char[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	char *src = bsrc->ptr;
+	size_t len = strlen(src); 
+	static char base64char[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	char *dst = bdst->ptr;
 
 	while(len > 2){
 		*dst++ = base64char[src[0] >> 2 & 0x3f];
@@ -128,5 +128,6 @@ encode_base64(const u_char *src, u_char *dst)
 	
 	*dst = 0;
 
+	return 0;
 }
 

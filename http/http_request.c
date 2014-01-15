@@ -5,6 +5,32 @@
 static int find_header_end(buffer *b);
 
 static void adjust_header(list_buffer *pre, list_buffer *last);
+
+response * response_init(pool_t *p)
+{
+	response *out;
+    
+ 	out = palloc(p, sizeof(response));
+ 	out->status_code = HTTP_UNDEFINED;
+	out->content_length = 0;
+	out->server  = NULL;
+	out->date = NULL;
+	out->www_authenticate = NULL;
+	out->content_type = NULL;
+	out->physical_path = NULL;
+	out->content_encoding = _NOCOMPRESS;
+	 
+	return out;
+}
+
+request * request_init(pool_t *p)
+{
+	request *in;
+
+	in = pcalloc(p, sizeof(request));
+
+	return in;
+}
  
 
 
@@ -39,21 +65,18 @@ start_web_server(struct http_conf *g)
  *
  */
 static int
-read_header(struct epoll_event *ev)
+read_header(http_connect_t *con)
 {
 	list_buffer *lb, *tmplb;
 	buffer *b;
 	pool_t *p;
-	http_connect_t *con;
 	list_buffer *header;
 	int palloc_size = 1024;
 	int count;
 	int size;
 	
-	con = (http_connect_t *)ev->data.ptr;
 	if(con->p == NULL) printf("sss\n");
 	p =(pool_t *) con->p;
-	if(con->in == NULL)con->in = (request *)palloc(p, sizeof(request)); 
 	if(con->in->header == NULL)con->in->header = list_buffer_create(p);
 
 	header = con->in->header;
@@ -220,9 +243,8 @@ static void test_print_header(request *in)
 }
 
 static void 
-parse_header(struct epoll_event *ev)
+parse_header(http_connect_t * con)
 {
-	http_connect_t * con;
 	struct request *in;
 	struct list_buffer *header;
 	buffer *b;
@@ -231,7 +253,6 @@ parse_header(struct epoll_event *ev)
 	
 
 
-	con = (http_connect_t *)ev->data.ptr;
 	p = (pool_t *)con->p;
 	dst = (read_buffer *)palloc(p, sizeof(read_buffer));
 	in = con->in;
@@ -310,30 +331,47 @@ start_accept(struct http_conf *g)
 				//data struct , connect  data struct , file data struct , 
 			}
 			else if(ev[count].events & EPOLLIN) {
-				if(read_header(ev+count) == 0) {
-					parse_header(ev+count);
+				http_connect_t * con;
+
+				con = (http_connect_t *) ev[count].data.ptr;
+				con->in = (request *)request_init(con->p); 
+
+				if(read_header(con) == 0) {
+					parse_header(con);
 					con->next_handle = authorized_handle;
-					virtual_port_match(ev[count].data.ptr, con);
+					virtual_port_match(g, con);
 					epoll_edit_fd(g->epfd, ev+count, EPOLL_W);
+					/*是否需要登录
+					 *提交方式
+					 *主页匹配
+					 *压缩
+					 *发送数据
+					 */
+					//http_connect_t *con;
+					//con = ev[count].data.ptr;
+
+					con->out = (response *)palloc(con->p, sizeof(response));
+					while(con->next_handle(g, con) == 0){	
+					}
+
+	
+					if(con->out->status_code == HTTP_UNAUTHORIZED) {
+						send_unauthorized(con->fd);
+					}
+					else {
+
+						http_send_header(con);
+						http_send_body(con);
+
+					}
+					epoll_del_fd(g->epfd, ev+count);
+					close(con->fd);
+					pool_destroy(con->p);
 					
 				}
 
 			}
 			else if(ev[count].events & EPOLLOUT) {
-				/*是否需要登录
-				 *提交方式
-				 *主页匹配
-				 *压缩
-				 *发送数据
-				 */
-				http_connect_t con;
-				con = ev[count].data.ptr;
-
-
-				while(con->next_handle(g, con) == 0){
-					
-				}
-				
 				
 			}
 

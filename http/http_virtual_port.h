@@ -5,6 +5,6 @@
 #include "http_mod_connect.h"
 #include "http_request.h"
 
-void virtual_port_math(http_conf *g, http_connect_t *con);
+void virtual_port_match(http_conf *g, http_connect_t *con);
 
 #endif

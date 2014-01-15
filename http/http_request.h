@@ -14,8 +14,10 @@
 #include "base.h"
 #include "http_mod_connect.h"
 #include "http_virtual_port.h"
-#inlcude "base64.h"
+#include "base64.h"
 #include "http_mod_authorized.h"
+#include "http_send_page.h"
+#include "http_send_html.h"
 
 #define MAX_CONNECT 10000
 #define MAX_EVENT 800
@@ -29,7 +31,7 @@
 #define HTTP_REQUEST_TIMEOUT 408
 #define HTTP_NOT_IMPLEMENTED 501
 #define HTTP_BAD_GATEWAY 502
-
+#define HTTP_UNDEFINED 544
 
 
 typedef enum{
@@ -39,7 +41,7 @@ typedef enum{
 }http_method_t;
 
 typedef enum {
-	_NOCOMPRESS,
+	_NOCOMPRESS, 
 	_GZIP,
 	_DEFLATE
 }COMPRESS_TYPE;
@@ -52,10 +54,9 @@ typedef struct response{
 	buffer * date;
 	buffer * *www_authenticate;
 	buffer * content_type;
+	buffer * physical_path;
+	read_buffer *args;
 	COMPRESS_TYPE content_encoding;	
-	
-	
-	
 }response;
 
 typedef struct request{
@@ -76,5 +77,8 @@ typedef struct request{
 
 
 int start_accept(struct http_conf *g);
+
+response * response_init(pool_t *p);
+request * request_init(pool_t *p);
 
 #endif

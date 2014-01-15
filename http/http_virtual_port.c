@@ -14,16 +14,21 @@ virtual_port_match(http_conf *g, http_connect_t *con)
 	rbport = (read_buffer *)palloc(con->p, sizeof(read_buffer));
 	host = con->in->host;
 	web = g->web;
-
 	//一下是为了支持多个端口绑定
-	read_buffer_get_line_split(host, rbport);
+	read_buffer_get_line_split(host, rbport, ':');
 
 	if(rbport->size > 0 && rbport->ptr != NULL){
 		port = atoi(rbport->ptr);
 	}
 
 	  while(web != NULL) {
-		  if(read_buffer_compare_str(host, web->server) == 0) {
+		  if(web->server == NULL) {
+			  if(read_buffer_compare_str(host, "127.0.0.1") == 0
+				  || read_buffer_compare_str(host, "localhost") == 0) {
+				  con->web = web;
+			  }
+		  }
+		  else if(read_buffer_compare_str(host, web->server) == 0) {
 			  con->web = web;
 			  return;
 		  }
@@ -33,10 +38,7 @@ virtual_port_match(http_conf *g, http_connect_t *con)
 		   *	return;
 		   *}
 		   */
-		  if(web->next == NULL) {
-			  con->web = web;
-			  return;
-		  }
+		  
 		  
 		  web = web->next;
 	  }

@@ -19,7 +19,7 @@ response * response_init(pool_t *p)
 	out->content_type = NULL;
 	out->physical_path = NULL;
 	out->content_encoding = _NOCOMPRESS;
-	 
+
 	return out;
 }
 
@@ -91,7 +91,7 @@ read_header(http_connect_t *con)
 	while(( size = (size_t)read(	con->fd, b->ptr + b->used, (int)(b->size - b->used))) > 0) {
 		b->used += size;
 		if((count = find_header_end(b)) >= 0) {
-			list_buffer_to_lower(header);
+			//list_buffer_to_lower(header);
 			return 0;
 		}
 		if(b->size == b->used ) {
@@ -181,11 +181,11 @@ parse_http_uri(struct pool_t *p, request *in, read_buffer *rb)
 	end = rb->ptr+rb->size;
 
 	start = skip_space(start, end);
-	if(strncmp(start,"get", 3) == 0) {
+	if(strncasecmp(start,"get", 3) == 0) {
 		in->http_method = _GET;
 		start += 3;
 	}
-	else if(strncmp(start, "post", 4) == 0) {
+	else if(strncasecmp(start, "post", 4) == 0) {
 		in->http_method = _POST;
 		start +=4;
 	}
@@ -264,11 +264,10 @@ parse_header(http_connect_t * con)
 	parse_http_uri(p, in, dst);
 	
 
-
 	while(!buffer_get_word_with_split(b, dst, ':')) {
 		if(dst->ptr == NULL && header->next == NULL) return ;
 		if(dst->ptr == NULL) { header = header->next;b = header->b;continue;}
-		if(strncmp("accept-encoding", dst->ptr, dst->size) == 0) {
+		if(strncasecmp("accept-encoding", dst->ptr, dst->size) == 0) {
 			buffer_get_line(b, dst);
 			if(dst->size == 0) {
 				in->accept_encoding = _NOCOMPRESS;
@@ -280,13 +279,13 @@ parse_header(http_connect_t * con)
 				in->accept_encoding = _DEFLATE;
 			}
 		}
-		else if(strncmp("host", dst->ptr, dst->size) == 0) {
+		else if(strncasecmp("host", dst->ptr, dst->size) == 0) {
 			buffer_get_line(b, dst);
 			in->host = (read_buffer *)palloc(p, sizeof(read_buffer));
 			in->host->ptr = dst->ptr;
 			in->host->size = dst->size;
 		}
-		else if(strncmp("authorization", dst->ptr, dst->size) == 0) {
+		else if(strncasecmp("authorization", dst->ptr, dst->size) == 0) {
 			buffer_get_line(b, dst);
 			in->authorization = (read_buffer *)palloc(p, sizeof(read_buffer));
 			in->authorization->ptr = dst->ptr;
@@ -294,9 +293,7 @@ parse_header(http_connect_t * con)
 			decoded_usr_pwd(con);
 		}
 		else {
-			do {
-				buffer_get_line(b, dst);
-			}while(dst->size == 0 && (header=header->next) != NULL);
+			buffer_get_line(b, dst);
 			
 		}
 	}
@@ -338,6 +335,7 @@ start_accept(struct http_conf *g)
 
 				if(read_header(con) == 0) {
 					parse_header(con);
+					list_buffer_to_lower(con->in->header);
 					con->next_handle = authorized_handle;
 					virtual_port_match(g, con);
 					epoll_edit_fd(g->epfd, ev+count, EPOLL_W);
@@ -350,16 +348,19 @@ start_accept(struct http_conf *g)
 					//http_connect_t *con;
 					//con = ev[count].data.ptr;
 
-					con->out = (response *)palloc(con->p, sizeof(response));
-					while(con->next_handle(g, con) == 0){	
+					con->out = (response *)response_init(con->p);
+					while(con->next_handle != NULL && con->next_handle(g, con) == 0){	
 					}
-
-	
 					if(con->out->status_code == HTTP_UNAUTHORIZED) {
 						send_unauthorized(con->fd);
 					}
+					else if(con->out->status_code == HTTP_NOT_FOUND) {
+						send_not_find(con->fd);
+					}
 					else {
-
+if(con->out->physical_path != NULL && con->out->physical_path->ptr != NULL)
+printf("------------\n%s\n", con->out->physical_path->ptr);
+						//send_bad_gateway(con->fd);
 						http_send_header(con);
 						http_send_body(con);
 

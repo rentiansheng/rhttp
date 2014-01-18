@@ -36,7 +36,7 @@ typedef enum {
 
 typedef struct key {
 	char *name;
-	void *value;
+	char *value;
 	value_type type;
 	struct key *next;
 }key;
@@ -52,6 +52,7 @@ typedef struct fileinfo {
 typedef struct web_conf {
 	char *root;
 	char *index_file;
+	int index_count;
 	char *err404;
 	char *server;
 	int fd;

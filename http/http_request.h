@@ -18,6 +18,7 @@
 #include "http_mod_authorized.h"
 #include "http_send_page.h"
 #include "http_send_html.h"
+#include "http_autoindex.h"
 
 #define MAX_CONNECT 10000
 #define MAX_EVENT 800

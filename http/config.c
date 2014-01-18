@@ -97,12 +97,12 @@ set_mimetype(FILE * f, http_conf *g, int *row)
 		value = (char *) malloc(sizeof(char)*(len));
 		if(k == NULL) return MEMERROR;//memory error
 		strncpy(value, name,  len);
-		value[len] = 0;
+		value[len-1] = 0;
 
-		name = split++;
+		name = split+1;
 		while(*name == ' ') name++;
 		end = &split[strlen(split) - 1];
-		while(*end-- == ' ' && end >= name)end --;
+		while(*end == ' ' && end >= name)end --;
 		if(end < name) return 5;//配置节点的名字不能为空
 		len = end - name + 2;
 		
@@ -112,8 +112,8 @@ set_mimetype(FILE * f, http_conf *g, int *row)
 
 		k->value = (char *)malloc(sizeof(char) * len);
 		if(k->value == NULL) return MEMERROR;
-		strncpy(k->name, name, len);
-		k->name[len] = 0;
+		strncpy(k->value, name, len);
+		k->value[len -1] = 0;
 
 		k->next = g->mimetype;
 		g->mimetype = k;
@@ -153,7 +153,7 @@ set_web(FILE *f, http_conf *g, int *row)
 		strncpy(value, name, len);
 		value[len] = 0;
 		
-		name = split++;
+		name = split+1;
 		while(*name == ' ') name++;
 		end = &split[strlen(split) - 1];
 		while(*end-- == ' ' && end >= name)end --;
@@ -167,7 +167,16 @@ set_web(FILE *f, http_conf *g, int *row)
 				web->root = item;
 		}
 		else if(strncmp( "indexfiles", value, 10) == 0) {
+				web->index_count = 0;
 				web->index_file = item;
+				
+				if(strlen(item) != 0) web->index_count = 1;
+				while((item = strchr(item, ',')) != NULL) {
+					*item = 0;
+					item++;
+					web->index_count++;
+				}
+
 		}
 		else if(strncmp("404_page", value, 8) == 0) {
 				web->err404 = item;

@@ -11,6 +11,7 @@
 #include "buffer.h"
 #include "http_send_page.h"
 #include "http_request.h"
+#include "http_autoindex.h"
 
 #define AUTH_PAGES "noauth.html"
 

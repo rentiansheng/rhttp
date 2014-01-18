@@ -9,22 +9,20 @@ authorized_handle(http_conf *g, http_connect_t *con)
 
 	usr[0] =  pwd[0] = 0;
 	if(con->in->user != NULL  &&  con->in->pwd != NULL) {
-		read_buffer_to_str_n(con->in->user, usr, sizeof(usr));
-		read_buffer_to_str_n(con->in->pwd, pwd, sizeof(pwd));
-	}
-
-
-
-	if(strlen(usr) == 0 || strlen(pwd) == 0) {
-		con->out->status_code = HTTP_UNAUTHORIZED;
-		return 2;
+		read_buffer_to_str_n(con->in->user, usr, con->in->user->size);
+		read_buffer_to_str_n(con->in->pwd, pwd, con->in->user->size);
 	}
 
 	/* 身份验证*/
 	result = 0;
-	if(result == 0) {
+
+	if(strcmp(usr,"1234") == 0 && strcmp(pwd, "1234") == 0) {
+		con->next_handle = autoindex_handle;
+	}
+	else  {
+		con->out->status_code = HTTP_UNAUTHORIZED;
 		con->out->physical_path = AUTH_PAGES;
-		return 0;
+		return 1;
 	}
 
 	return 0;

@@ -91,8 +91,8 @@ http_send_body(http_connect_t *con)
 {
 	struct stat sf;
 
-	if(!lstat(con->out->physical_path->ptr, &sf) == 0 ) {
-		int fd  = open(con->out->physical_path->ptr,  O_RDONLY);
+	if(lstat(con->out->physical_path->ptr+1, &sf) == 0 ) {
+		int fd  = open(con->out->physical_path->ptr+1,  O_RDONLY);
 		void *start = mmap(NULL, sf.st_size, PROT_READ, MAP_SHARED, fd, 0);
 		write(con->fd, start, sf.st_size);
 

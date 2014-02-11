@@ -3,6 +3,7 @@
 #define strcon(x,y) x y
 
 #define AUTOPAGELEN 20
+#define CGI_SUFFIX "cgi"
 
 
 
@@ -18,7 +19,12 @@ file_handle(http_conf *g, http_connect_t *con)
 	if(p != NULL) {
 		p++;
 		len = strlen(con->out->physical_path->ptr) - (p - con->out->physical_path->ptr);
-		k = g->mimetype;
+		
+		if(strncmp(p, CGI_SUFFIX, strlen(CGI_SUFFIX)) == 0) {
+			con->next_handle = cgi_handle;
+			return 0;
+		}
+		k = g->mimetype;		
 
 		while(k != NULL) {
 
@@ -34,7 +40,7 @@ file_handle(http_conf *g, http_connect_t *con)
 				
 	}
 
-	con->next_handle = NULL;
+	con->next_handle = http_send;
 	
 	return 0;
 }
@@ -62,7 +68,7 @@ autoindex_handle(http_conf *g, http_connect_t *con)
 	buffer_path_simplify(uri, uri);
 
 
-
+	con->next_handle = http_send;
 	if(chdir(web->root) == 0 ) {
 		if(strlen(uri->ptr)>1 && stat(uri->ptr+1, &buf) != 0 ) {
 			out->status_code = HTTP_NOT_FOUND;
@@ -103,6 +109,7 @@ autoindex_handle(http_conf *g, http_connect_t *con)
 	}
 	else {
 		out->status_code = HTTP_NOT_FOUND;
+		
 		return  1;
 	}
 	con->next_handle =  file_handle;

@@ -12,7 +12,7 @@
 #include "http_send_page.h"
 #include "http_request.h"
 #include "http_autoindex.h"
-
+#include "http_send_html.h"
 #define AUTH_PAGES "noauth.html"
 
 int authorized_handle(http_conf *g, http_connect_t *con);

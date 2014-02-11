@@ -70,7 +70,12 @@ list_buffer * list_buffer_last(list_buffer *lb);
 
 void list_buffer_to_lower(list_buffer *lb);
 
+
 void list_buffer_used_to_zero(list_buffer *lb);
+
+void buffer_find_str(buffer *src, buffer *dst, char *str);
+
+void buffer_n_to_lower(buffer *src, int n);
 
 int buffer_prepare_int(pool_t *p, buffer *b, size_t size);
 

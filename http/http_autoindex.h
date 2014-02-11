@@ -11,6 +11,7 @@
 #include "pool.h"
 #include "buffer.h"
 #include "sys/stat.h"
+#include "http_mod_cgi.h"
 #include "unistd.h"
 
 int autoindex_handle(http_conf *g, http_connect_t *con);

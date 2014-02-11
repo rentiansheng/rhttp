@@ -1,4 +1,6 @@
 /*
+ * st: 127.0.0.1
+ *
  * Copyright (C) Reage
  * blog:http://www.rhttp.cn
  */
@@ -36,7 +38,7 @@ read_buffer_init_str(pool_t *p, char *b, size_t len)
 void 
 read_buffer_get_line_split(read_buffer *src, read_buffer *dst, char split)
 {
-	char *p, *end;
+	 char *p, *end;
 
 	if(src == NULL || src->ptr == NULL) return;
 
@@ -47,9 +49,9 @@ read_buffer_get_line_split(read_buffer *src, read_buffer *dst, char split)
 		if(*p == split){
 			dst->ptr = ++p;
 			dst->size = end - p;
-			return;
+	 		return;
 		}
-		p++;
+	 	p++;
 	}
 
 	return ;
@@ -73,6 +75,7 @@ read_buffer_get_line(read_buffer *src, read_buffer *dst)
 	while(' ' == *p && p < end)p++;
 	dst->ptr =  p;
 	for(;   '\r' != *p && '\n' != *p && p < end; p++);
+
 	dst->size = p - dst->ptr; 
 
 	return ; 
@@ -113,7 +116,6 @@ read_buffer_to_str_n(read_buffer *b, char *s1, int n)
 {
 	if(b->ptr == NULL || b->size == 0) {*s1 = 0;return;}
 
-	n--;
 
 	strncpy(s1, b->ptr, n);
 	s1[n] = 0;
@@ -167,7 +169,7 @@ buffer_get_word_with_split(buffer *src, read_buffer *dst, char split)
 	dst->size = p - dst->ptr;
 	src->used += dst->size + 1;
 
-	return 0;
+	return 0; 
 }
 
 
@@ -178,18 +180,17 @@ buffer_get_line(buffer *src, read_buffer * dst)
 
 	dst->size = 0;
 
-	if(src == NULL || src->ptr == NULL)return -1;
+	if(src == NULL || src->ptr == NULL || src->size == 0){dst->ptr = NULL;dst->size=0;return -1;}
 	p = src->ptr + src->used;
-	end = p + src->size - 1;
-
+	end = src->ptr + src->size - 1;
 	while(' ' == *p && p != NULL) {if(end == p)return -1;p++;}
 
 	dst->ptr = p;
 
-	for(;*p != '\r' && *p != '\n'; p++)if(end == p){ dst->ptr = NULL; return -1;}
+	for(;*p != '\r' && *p != '\n'; p++)if(end == p){ dst->size = p - dst->ptr + 1; return -1;}
 
 	dst->size = p - dst->ptr;
-	src->used += dst->size + 1;
+	src->used = p - src->ptr + 1;
 	if(p[1] == '\n') src->used += 1;
 
 	return 0;
@@ -248,6 +249,42 @@ list_buffer_to_lower(list_buffer *lb)
 		buffer_to_lower(b);
 	}
 }
+
+
+void 
+buffer_n_to_lower(buffer *src, int n)
+{
+	if(n > 0) {
+		if(src != NULL && src->ptr != NULL) {
+			char *p = src->ptr;
+			n = n>src->size?src->size:n;
+			while((p - src->ptr) < n) {
+				if(*p > 'A' && *p < 'Z') {
+					*p |= 32;
+				}
+				p++;
+			}
+		}
+	}
+}
+
+void 
+buffer_find_str(buffer *src, buffer *dst, char *str) {
+	char *p;
+
+	if(src != NULL && src->ptr != NULL && src->size > 0 && str != NULL) {
+		p = strstr(src->ptr, str);
+		if(p - src->ptr < src->size) {
+			dst->ptr = p;
+			dst->size = strlen(str);
+		}
+		else {
+			dst->ptr = NULL	;
+		}
+
+	}
+}
+
 
 void 
 list_buffer_used_to_zero(list_buffer *lb)
@@ -345,10 +382,6 @@ buffer_caseless_compare_len(buffer *a, buffer *b) {
 
 
 
-
-
-
-
 int 
 buffer_path_simplify(buffer *dest, const buffer *src)
 {
@@ -433,7 +466,7 @@ buffer_path_simplify(buffer *dest, const buffer *src)
 	}
 
 	*out = '\0';
-	dest->used = (out - start) + 1;
+	dest->used = (out - start);
 	return 0;
 }
 

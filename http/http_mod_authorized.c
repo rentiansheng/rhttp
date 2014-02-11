@@ -15,14 +15,13 @@ authorized_handle(http_conf *g, http_connect_t *con)
 
 	/* 身份验证*/
 	result = 0;
-
+	con->next_handle = http_send;
 	if(strcmp(usr,"1234") == 0 && strcmp(pwd, "1234") == 0) {
 		con->next_handle = autoindex_handle;
 	}
 	else  {
 		con->out->status_code = HTTP_UNAUTHORIZED;
 		con->out->physical_path = AUTH_PAGES;
-		return 1;
 	}
 
 	return 0;

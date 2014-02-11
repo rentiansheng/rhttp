@@ -104,3 +104,24 @@ http_send_body(http_connect_t *con)
 
 	return 1;
 }
+
+int 
+http_send(http_conf *g, http_connect_t *con)
+{
+	if(con->out->status_code == HTTP_UNAUTHORIZED) {
+		send_unauthorized(con->fd);
+	}
+	else if(con->out->status_code == HTTP_NOT_FOUND) {
+		send_not_find(con->fd);
+	}
+	else { 
+		//send_bad_gate way(con->fd);
+		http_send_header(con);
+		http_send_body(con);
+
+	}
+	con->next_handle = NULL;
+
+	close(con->fd);
+	pool_destroy(con->p);
+}

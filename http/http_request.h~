@@ -1,62 +1,85 @@
-#ifndef _NGX_HTTP_REQUEST_H_INCLUDED_
-#define _NGX_HTTP_REQUEST_H_INCLUDED_
-typedef struct web_conf{
-	char *root;	//web site path
-	char *index_file;
-	char *err404;
-	char *server;
-	struct web_conf * next;
-}web_conf;
 
-typedef struct globle_conf{
-	//char *mod_path;//模块的so文件放的位置
-	int web_count;
-	int port;
-	struct KEY *mimetype;
-	struct web_conf *web_config;
-}globle_conf;
+/*
+ * Copyright (C) Reage
+ * BLOG: http://www.rhttp.cn
+ */
 
-typedef enum { 
-	t_char,
-	t_uchar,
-	t_int,
-	t_uint,
-	t_long,
-}key_value_type;
 
-typedef struct KEY{
-	char *name;
-	void *value;
-	key_value_type data_type;
-	struct KEY *next;
-}KEY;
+#ifndef _HTTP_REQUEST_H_INCLUDED_
+#define _HTTP_REQUEST_H_INCLUDED_
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/epoll.h>
+#include "buffer.h"
+#include "base.h"
+#include "http_mod_connect.h"
+#include "http_virtual_port.h"
+#include "base64.h"
+#include "http_mod_authorized.h"
+#include "http_send_page.h"
+#include "http_send_html.h"
+#include "http_autoindex.h"
+
+#define MAX_CONNECT 10000
+#define MAX_EVENT 800
+
+
+#define HTTP_OK 200
+
+#define HTTP_BAD_REQUEST 400
+#define HTTP_UNAUTHORIZED 401
+#define HTTP_NOT_FOUND 404
+#define HTTP_REQUEST_TIMEOUT 408
+#define HTTP_NOT_IMPLEMENTED 501
+#define HTTP_BAD_GATEWAY 502
+#define HTTP_UNDEFINED 544
+
 
 typedef enum{
-	get,
-	post,
-	none
+	_GET,
+	_POST,
+	_NONE
 }http_method_t;
 
+typedef enum {
+	_NOCOMPRESS, 
+	_GZIP,
+	_DEFLATE
+}COMPRESS_TYPE;
+
 typedef struct response{
-	int status_code;
-	int content_encoding;//0 none 1 deflate 2 gzip	
-	void * start;
-	size_t len;
-	struct read_buffer * compress;
-	struct read_buffer * content_type;
-	struct buffer * out;
-	
-	
+	size_t status_code;
+	size_t content_length;
+
+	buffer * server;
+	buffer * date;
+	buffer * *www_authenticate;
+	buffer * content_type;
+	buffer * physical_path;
+	read_buffer *args;
+	COMPRESS_TYPE content_encoding;	
 }response;
 
 typedef struct request{
-	struct buffer *uri;
-	struct read_buffer *host;
+	read_buffer * uri;
+	read_buffer * host;
+	
+	read_buffer * authorization;
+	read_buffer * user;
+	read_buffer * pwd;
 	http_method_t http_method;
-	struct read_buffer * http_version;
-	struct read_buffer * compress;
-	struct buffer *header;
-	int sockfd;
-	struct web_conf * web;
-	struct read_buffer * pages;
+	read_buffer * http_version;
+	COMPRESS_TYPE accept_encoding;	
+	
+	struct list_buffer *header;
+
 }request;
+
+
+
+int start_accept(struct http_conf *g);
+
+response * response_init(pool_t *p);
+request * request_init(pool_t *p);
+
+#endif

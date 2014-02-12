@@ -1,0 +1,19 @@
+
+port=80
+
+mimetype=(
+	".gif":"image/gif"
+	".jpg":"image/jpeg"
+	".jpeg":"image/jpeg"
+	".png":"image/png"
+	".css":"text/css"
+	".html":"text/html"
+	".htm":"text/html"
+	".js":"text/javascript"
+)
+
+web =(
+	root:/www
+	indexfiles:index.html,index.htm
+	404_page: err.html
+)

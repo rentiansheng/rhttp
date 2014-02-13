@@ -207,6 +207,7 @@ parse_http_uri(struct pool_t *p, request *in, read_buffer *rb)
 	char *ptr;
 	char *start;
 	char *end;
+	int count;
 
 	start = rb->ptr;
 	end = rb->ptr+rb->size;
@@ -231,6 +232,16 @@ parse_http_uri(struct pool_t *p, request *in, read_buffer *rb)
 	ptr = find_end(start, end);
 	in->uri->size = ptr - start;
 	start = ptr + 1;
+
+	in->args = (read_buffer *)read_buffer_init(p);
+
+	ptr = strchr(in->uri->ptr, '?');
+	if(ptr != NULL && (ptr - in->uri->ptr)<in->uri->size) {
+		count  = ptr - in->uri->ptr;
+		in->args->ptr = ptr + 1;
+		in->args->size = in->uri->size - count - 1;
+		in->args->size -= count;
+	}
 
 	if(start == end) return ;
 	in->http_version = read_buffer_init(p);
@@ -294,7 +305,6 @@ parse_header(http_connect_t * con)
 	buffer_get_line(b, dst);
 	parse_http_uri(p, in, dst);
 	
-
 	while(!buffer_get_word_with_split(b, dst, ':')) {
 		if(dst->ptr == NULL && header->next == NULL) return ;
 		if(dst->ptr == NULL) { header = header->next;b = header->b;continue;}
@@ -322,6 +332,13 @@ parse_header(http_connect_t * con)
 			in->authorization->ptr = dst->ptr;
 			in->authorization->size = dst->size;
 			decoded_usr_pwd(con);
+		}
+		else if(strncasecmp("content-length",dst->ptr, dst->size) == 0) {
+			buffer_get_line(b, dst);
+			in->content_length = (read_buffer *)pcalloc(p, sizeof(read_buffer));
+			in->content_length->ptr = dst->ptr;
+			in->content_length->size = dst->size;
+
 		}
 		else {
 			buffer_get_line(b, dst);

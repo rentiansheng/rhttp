@@ -21,6 +21,8 @@ virtual_port_match(http_conf *g, http_connect_t *con)
 		port = atoi(rbport->ptr);
 	}
 
+	con->web = web;
+
 	  while(web != NULL) {
 		  if(web->server == NULL) {
 			  if(read_buffer_compare_str(host, "127.0.0.1") == 0

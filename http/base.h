@@ -109,13 +109,14 @@ typedef struct response{
 	buffer * *www_authenticate;
 	buffer * content_type;
 	buffer * physical_path;
-	read_buffer *args;
 	COMPRESS_TYPE content_encoding;	
 }response;
 
 typedef struct request{
 	read_buffer * uri;
 	read_buffer * host;
+	read_buffer *args;
+
 	
 	read_buffer * authorization;
 	read_buffer * user;
@@ -123,6 +124,7 @@ typedef struct request{
 	http_method_t http_method;
 	read_buffer * http_version;
 	COMPRESS_TYPE accept_encoding;	
+	read_buffer * content_length;
 	struct list_buffer *header;
 
 }request;

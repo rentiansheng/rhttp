@@ -32,12 +32,16 @@ cgi_handle(http_conf *g, http_connect_t *con)
 
 	cgi->count = 0;
 	if(con->in->http_method == _GET) {
-		add_envp(con->p, cgi, "REQUEST_METHOD" , "get");
-		add_envp(con->p, cgi, "QUERY_STRING", "aa=b");
+		add_envp(con->p, cgi, "REQUEST_METHOD" , "GET");
+		char *query_string = (char *)pcalloc(con->p, con->in->args->size+1);
+		strncpy(query_string, con->in->args->ptr, con->in->args->size);
+		add_envp(con->p, cgi, "QUERY_STRING", query_string);
 	}
 	else {
-		add_envp(con->p, cgi, "REQUEST_METHOD" , "pos t");
-		add_envp(con->p, cgi, "CONTENT_TYPE", "1024");
+		add_envp(con->p, cgi, "REQUEST_METHOD" , "POST");
+		char *str_len = (char *) pcalloc(con->p, con->in->content_length->size+1);
+		strncpy(str_len, con->in->content_length->ptr, con->in->content_length->size);
+		add_envp(con->p, cgi, "CONTENT_TYPE", str_len);
 	}
 	
 	argv[0] = con->out->physical_path->ptr +1;

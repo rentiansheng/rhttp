@@ -16,7 +16,7 @@ vitrual host支持<br>
 <br>
 未完成功能<br>
 connnect pool<br>
-
+add log 
 
 目标<br>
 做一个可以嵌入Linux智能设备中的简单高效的、简单的HTTP服务器，为智能设备提供可视化的web界面

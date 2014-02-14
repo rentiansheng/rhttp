@@ -10,11 +10,11 @@ rhttp
 memory pool 内存管理<br>
 authorized认证。在../http/http_mod_authorized.c写认证代码就行了。<br>
 配置文件<br>
+cgi<br>
+auto index<br>
 vitrual host支持<br>
 <br>
 未完成功能<br>
-auto index<br>
-cgi<br>
 connnect pool<br>
 
 

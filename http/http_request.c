@@ -64,9 +64,44 @@ start_web_server(struct http_conf *g)
 	return epfd;
 }
 
-
 static int
 read_fd(list_buffer *header, pool_t *p, int fd)
+{
+	list_buffer *lb, *tmplb;
+	buffer *b;
+	int palloc_size = 1024;
+	int count;
+	int size;
+
+	lb = list_buffer_last(header);
+	if(lb->b ==	NULL) {
+		lb->b = buffer_create_size(p, palloc_size);
+		memset(lb->b->ptr, 0, 1024);
+	}
+
+	
+	b = lb->b;
+	while(( size = (size_t)read(fd, b->ptr + b->used, (int)(b->size - b->used))) >= 0) {
+		b->used += size;
+			printf("%s\n");
+		if(size == 0){
+			printf("\n-------------------\n%s\n");
+			return 0;
+		}
+		if(b->size == b->used ) {
+			tmplb  = list_buffer_add(p, header);
+			tmplb->b = buffer_create_size(p, palloc_size);
+			adjust_header(lb, tmplb);
+			lb= tmplb;
+			b = lb->b;
+		}
+	}
+
+	return 1;
+}
+
+static int
+read_http_header(list_buffer *header, pool_t *p, int fd)
 {
 	list_buffer *lb, *tmplb;
 	buffer *b;
@@ -119,7 +154,7 @@ read_header(http_connect_t *con)
 	if(con->in->header == NULL)con->in->header = list_buffer_create(p);
 	header = con->in->header;
 	
-	return read_fd(header, p, con->fd);
+	return read_http_header(header, p, con->fd);
 }
 
 static int
@@ -240,7 +275,7 @@ parse_http_uri(struct pool_t *p, request *in, read_buffer *rb)
 		count  = ptr - in->uri->ptr;
 		in->args->ptr = ptr + 1;
 		in->args->size = in->uri->size - count - 1;
-		in->args->size -= count;
+		in->uri->size = count;
 	}
 
 	if(start == end) return ;

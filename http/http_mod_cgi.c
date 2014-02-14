@@ -54,7 +54,7 @@ cgi_handle(http_conf *g, http_connect_t *con)
 		}
 		case 0: {
 			dup2(infd[1], STDOUT_FILENO);
-			dup2(outfd[0], STDIN_FILENO);
+			dup2(con->fd, STDIN_FILENO);
 			
 			close(infd[0]);
 			close(outfd[1]);

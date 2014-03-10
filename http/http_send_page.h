@@ -17,4 +17,5 @@ int send_not_find(int fd);
 
 int send_bad_gateway(int fd);
 
+int send_bad_request(int fd);
 #endif

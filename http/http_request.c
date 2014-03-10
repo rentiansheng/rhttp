@@ -6,7 +6,8 @@ static int find_header_end(buffer *b);
 
 static void adjust_header(list_buffer *pre, list_buffer *last);
 
-response * response_init(pool_t *p)
+response * 
+response_init(pool_t *p)
 {
 	response *out;
     
@@ -23,7 +24,8 @@ response * response_init(pool_t *p)
 	return out;
 }
 
-request * request_init(pool_t *p)
+request * 
+request_init(pool_t *p)
 {
 	request *in;
 
@@ -322,7 +324,7 @@ static void test_print_header(request *in)
 static void 
 parse_header(http_connect_t * con)
 {
-	struct request *in;
+ 	struct request *in;
 	struct list_buffer *header;
 	buffer *b;
 	read_buffer *dst;
@@ -390,9 +392,19 @@ int
 accept_handler(http_conf *g, http_connect_t *con, struct epoll_event *ev)
 {
 
-	con->in = (request *)request_init(con->p); 
+ 	con->in = (request *)request_init(con->p); 
 
 	if(read_header(con) == 0) {
+		if(con->in->header == NULL || con->in->header->b == NULL 
+			|| con->in->header->b->size <= 0) {
+
+			send_bad_request(con->fd);
+			epoll_del_fd(g->epfd, ev);
+			close(con->fd);
+			pool_destroy(con->p);
+			return -1;
+		}	
+	
 		parse_header(con);  
 		list_buffer_to_lower(con->in->header);
 		con->next_handle = authorized_handle;
@@ -411,7 +423,7 @@ accept_handler(http_conf *g, http_connect_t *con, struct epoll_event *ev)
 		while(con->next_handle != NULL && con->next_handle(g, con) == 0){	
 		}
 		
-		epoll_del_fd(g->epfd, ev);
+ 		epoll_del_fd(g->epfd, ev);
 					
 	}
 
@@ -503,7 +515,7 @@ cgi_parse_handler(epoll_cgi_t *cgi)
 int
 start_accept(struct http_conf *g)
 {
-	int count;
+	int count; 
 	struct epoll_event ev[MAX_EVENT];
 	epoll_extra_data_t *epoll_data;
 	
@@ -528,7 +540,7 @@ start_accept(struct http_conf *g)
 				data_ptr->type = SOCKFD;
 				data_ptr->ptr = (void *) con;
 				epoll_add_fd(g->epfd, confd, EPOLL_R, (void *)data_ptr);//对epoll data结构指向的结构体重新封装，分websit
-				//data struct ,  connect  data struct , file data struct , 
+	 			//data struct ,  connect  data struct , file data struct , 
 			}
 			else if((ev[count].events & EPOLLIN)) {
 				http_connect_t * con;
@@ -537,9 +549,9 @@ start_accept(struct http_conf *g)
 				switch(epoll_data->type) {
 					case SOCKFD:
 						accept_handler(g, con, ev+count);
-						break; 
+	 					break; 
 					case CGIFD: {
-						epoll_cgi_t *cgi = (epoll_cgi_t *)epoll_data->ptr;
+	 					epoll_cgi_t *cgi = (epoll_cgi_t *)epoll_data->ptr;
 						if(read_cgi(cgi) == 0) {
 							list_buffer_used_to_zero(cgi->cgi_data);
 							if(cgi_parse_handler(cgi) == 0) {
@@ -551,22 +563,22 @@ start_accept(struct http_conf *g)
 							}
 							epoll_del_fd(g->epfd, ev);
 							pool_destroy(cgi->con->p);
-							close(cgi->con->fd);
+	 	 					close(cgi->con->fd);
 						}
 						else {
 						}
 						
-						break;
-					}
-				}
+		 				break;
+	 	 			}
+	 	 		}
 				
 
 			}
 			else if(ev[count].events & EPOLLOUT) {
 				
-			}
+	 	 	}
 
 
-		}
-	}
+	 	} 
+	} 
 }

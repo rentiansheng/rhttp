@@ -180,10 +180,15 @@ buffer_get_line(buffer *src, read_buffer * dst)
 
 	dst->size = 0;
 
-	if(src == NULL || src->ptr == NULL || src->size == 0){dst->ptr = NULL;dst->size=0;return -1;}
+	if(src == NULL || src->ptr == NULL || src->size == 0){dst->size=0;return -1;}
 	p = src->ptr + src->used;
 	end = src->ptr + src->size - 1;
 	while(' ' == *p && p != NULL) {if(end == p)return -1;p++;}
+
+	if(p >= end) {
+		dst->size = 0;
+		return 0;
+	}
 
 	dst->ptr = p;
 

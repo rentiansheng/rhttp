@@ -18,9 +18,9 @@ vitrual host支持<br>
 connnect pool<br>
 add log 
 <br>
-细节问题
-fork线程回收
-main参数处理
+细节问题<br>
+fork线程回收<br>
+main参数处理<br>
 
 目标<br>
 做一个可以嵌入Linux智能设备中的简单高效的、简单的HTTP服务器，为智能设备提供可视化的web界面

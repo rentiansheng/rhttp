@@ -10,6 +10,7 @@
 #include "buffer.h"
 #include "pool.h"
 #include "http_mod_connect.h"
+#include "str.h"
 
 #define OK 0
 #define FILE_NO_EXIST 1
@@ -18,9 +19,6 @@
 #define DONE 4
 #define MEMERROR -1
 #define UNDEFINED   -144
-
-#define MAX_CONNECT 10000
-#define MAX_EVENT 800
 
 
 #define HTTP_OK 200
@@ -80,7 +78,7 @@ typedef struct key {
 
 
 typedef struct fileinfo {
-	str * name;
+	string * name;
 	size_t len;
 	int fd;
 	void *start;
@@ -120,18 +118,18 @@ typedef struct response{
 }response;
 
 typedef struct request{
-	str * uri;
-	str * host;
-	str *args;
+	string * uri;
+	string * host;
+	string *args;
 
 	
-	str * authorization;
-	str * user;
-	str * pwd;
+	string * authorization;
+	string * user;
+	string * pwd;
 	http_method_t http_method;
-	str * http_version;
+	string * http_version;
 	COMPRESS_TYPE accept_encoding;	
-	str * content_length;
+	string * content_length;
 	struct list_buffer *header;
 
 }request;

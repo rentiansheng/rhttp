@@ -7,11 +7,12 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/epoll.h>
 #include <netinet/in.h>
 #include <errno.h>
 
 
+#define MAX_CONNECT 10000
+#define MAX_EVENT 800
 
 int socket_listen(char *ip, unsigned short int port);
 

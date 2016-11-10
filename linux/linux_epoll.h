@@ -1,16 +1,23 @@
 #ifndef _LINUX_EPOLL_H_
 #define _LINUX_EPOLL_H_
-
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <sys/epoll.h>
 #include <netinet/in.h>
-#include <errno.h>
 
+
+#define EPOLL_W 1
+#define EPOLL_R 2
+#define SERVERFD 1
+#define SOCKFD 2
+#define CGIFD 3
+#define WRITEFILE 4
+#define CGISERVERFD 5
 
 
 int epoll_init(long max);

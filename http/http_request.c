@@ -237,7 +237,7 @@ find_end(char *start, char *end) {
 
 
 static void
-parse_http_uri(struct pool_t *p, request *in, read_buffer *rb)
+parse_http_uri(struct pool_t *p, request *in, string *rb)
 {
 	char *ptr;
 	char *start;
@@ -245,7 +245,7 @@ parse_http_uri(struct pool_t *p, request *in, read_buffer *rb)
 	int count;
 
 	start = rb->ptr;
-	end = rb->ptr+rb->size;
+	end = rb->ptr+rb->len;
 
 	start = skip_space(start, end);
 	if(strncasecmp(start,"get", 3) == 0) {
@@ -262,26 +262,26 @@ parse_http_uri(struct pool_t *p, request *in, read_buffer *rb)
 	}
 
 	start = (char *)skip_space(start+1, end);
-	in->uri = read_buffer_init(p);
+	in->uri = string_init(p);
 	in->uri->ptr = start;
 	ptr = find_end(start, end);
-	in->uri->size = ptr - start;
+	in->uri->len = ptr - start;
 	start = ptr + 1;
 
-	in->args = (read_buffer *)read_buffer_init(p);
+	in->args = (string *)string_init(p);
 
 	ptr = strchr(in->uri->ptr, '?');
-	if(ptr != NULL && (ptr - in->uri->ptr)<in->uri->size) {
+	if(ptr != NULL && (ptr - in->uri->ptr)<in->uri->len) {
 		count  = ptr - in->uri->ptr;
 		in->args->ptr = ptr + 1;
-		in->args->size = in->uri->size - count - 1;
-		in->uri->size = count;
+		in->args->len = in->uri->len - count - 1;
+		in->uri->len = count;
 	}
 
 	if(start == end) return ;
-	in->http_version = read_buffer_init(p);
+	in->http_version = string_init(p);
 	in->http_version->ptr = start ;
-	in->http_version->size = end - start;
+	in->http_version->len = end - start;
 	
 	return;
 }
@@ -289,9 +289,9 @@ parse_http_uri(struct pool_t *p, request *in, read_buffer *rb)
 
 static void test_print_header(request *in)
 {
-	printf("uri=%s  len =%d|", in->uri->ptr, in->uri->size);
-	printf("host=%s  len =%d|", in->host->ptr, in->host->size);
-	printf("http_version=%s  len =%d|", in->http_version->ptr, in->http_version->size);
+	printf("uri=%s  len =%d|", in->uri->ptr, in->uri->len);
+	printf("host=%s  len =%d|", in->host->ptr, in->host->len);
+	printf("http_version=%s  len =%d|", in->http_version->ptr, in->http_version->len);
 
 	printf("http_method:");
 	if(in->http_method == _GET) {
@@ -325,13 +325,13 @@ parse_header(http_connect_t * con)
  	struct request *in;
 	struct list_buffer *header;
 	buffer *b;
-	read_buffer *dst;
+	string *dst;
 	pool_t *p;
 	
 
 
 	p = (pool_t *)con->p;
-	dst = (read_buffer *)palloc(p, sizeof(read_buffer));
+	dst = (string *)palloc(p, sizeof(string));
 	in = con->in;
 	header = in->header;
 	
@@ -343,9 +343,9 @@ parse_header(http_connect_t * con)
 	while(!buffer_get_word_with_split(b, dst, ':')) {
 		if(dst->ptr == NULL && header->next == NULL) return ;
 		if(dst->ptr == NULL) { header = header->next;b = header->b;continue;}
-		if(strncasecmp("accept-encoding", dst->ptr, dst->size) == 0) {
+		if(strncasecmp("accept-encoding", dst->ptr, dst->len) == 0) {
 			buffer_get_line(b, dst);
-			if(dst->size == 0) {
+			if(dst->len == 0) {
 				in->accept_encoding = _NOCOMPRESS;
 			}
 			else if(strstr(dst->ptr, "gzip") != NULL) {
@@ -355,24 +355,24 @@ parse_header(http_connect_t * con)
 				in->accept_encoding = _DEFLATE;
 			}
 		}
-		else if(strncasecmp("host", dst->ptr, dst->size) == 0) {
+		else if(strncasecmp("host", dst->ptr, dst->len) == 0) {
 			buffer_get_line(b, dst);
-			in->host = (read_buffer *)palloc(p, sizeof(read_buffer));
+			in->host = (string *)palloc(p, sizeof(string));
 			in->host->ptr = dst->ptr;
-			in->host->size = dst->size;
+			in->host->len = dst->len;
 		}
-		else if(strncasecmp("authorization", dst->ptr, dst->size) == 0) {
+		else if(strncasecmp("authorization", dst->ptr, dst->len) == 0) {
 			buffer_get_line(b, dst);
-			in->authorization = (read_buffer *)palloc(p, sizeof(read_buffer));
+			in->authorization = (string *)palloc(p, sizeof(string));
 			in->authorization->ptr = dst->ptr;
-			in->authorization->size = dst->size;
+			in->authorization->len = dst->len;
 			decoded_usr_pwd(con);
 		}
-		else if(strncasecmp("content-length",dst->ptr, dst->size) == 0) {
+		else if(strncasecmp("content-length",dst->ptr, dst->len) == 0) {
 			buffer_get_line(b, dst);
-			in->content_length = (read_buffer *)pcalloc(p, sizeof(read_buffer));
+			in->content_length = (string *)pcalloc(p, sizeof(string));
 			in->content_length->ptr = dst->ptr;
-			in->content_length->size = dst->size;
+			in->content_length->len = dst->len;
 
 		}
 		else {

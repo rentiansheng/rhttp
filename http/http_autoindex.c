@@ -58,11 +58,11 @@ autoindex_handle(http_conf *g, http_connect_t *con)
 	in = con->in;
 	out = con->out;
 	web = con->web;
-	path_len = in->uri->size + 1;
+	path_len = in->uri->len + 1;
 	uri = buffer_create_size(con->p, path_len + AUTOPAGELEN);
 
 	memset(uri->ptr, 0, path_len);
-	uri->used = in->uri->size;
+	uri->used = in->uri->len;
 	strncpy(uri->ptr, in->uri->ptr, path_len-1);
 
 	buffer_path_simplify(uri, uri);

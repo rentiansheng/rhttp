@@ -1,6 +1,7 @@
 #include "linux_epoll.h"
-static int
-make_fd_non_blocking(int sfd) 
+
+
+static int make_fd_non_blocking(int sfd) 
 {
 	int flags, s;
 
@@ -18,14 +19,12 @@ make_fd_non_blocking(int sfd)
 	return 0;
 }
 
-int
-epoll_init(long max) 
+int epoll_init(long max) 
 {
 	return epoll_create(max);
 }
 
-static struct epoll_event *
-epoll_init_r(int fd)
+static struct epoll_event *epoll_init_r(int fd)
 {
 	struct epoll_event *ev;
 	
@@ -38,8 +37,7 @@ epoll_init_r(int fd)
 	return ev;
 }
 
-static struct epoll_event *
-epoll_init_w(int fd)
+static struct epoll_event *epoll_init_w(int fd)
 {
 	struct epoll_event *ev;
 	
@@ -53,8 +51,7 @@ epoll_init_w(int fd)
 }
 
 
-static struct epoll_event *
-epoll_init_wr(int fd, int wr, void *extra)
+static struct epoll_event * epoll_init_wr(int fd, int wr, void *extra)
 {
 	struct epoll_event *ev;
 	
@@ -71,8 +68,7 @@ epoll_init_wr(int fd, int wr, void *extra)
 	
 	return ev;
 }
-int 
-epoll_add_fd(int epfd, int fd, int wr, void *extra)
+int epoll_add_fd(int epfd, int fd, int wr, void *extra)
 {
 	struct epoll_event *ev;
 
@@ -81,16 +77,14 @@ epoll_add_fd(int epfd, int fd, int wr, void *extra)
 	return epoll_ctl(epfd, EPOLL_CTL_ADD, fd, ev);
 }
 
-int 
-epoll_edit_fd(int epfd, struct epoll_event *ev, int wr)
+int epoll_edit_fd(int epfd, struct epoll_event *ev, int wr)
 {
 
 	ev->events = (wr & EPOLL_W?EPOLLOUT:0)|(wr & EPOLL_R?EPOLLIN:0)|EPOLLET;
 	return epoll_ctl(epfd, EPOLL_CTL_MOD, ev->data.fd, ev);
 }
 
-int
-epoll_del_fd(int epfd, struct epoll_event *ev)
+int epoll_del_fd(int epfd, struct epoll_event *ev)
 {
 	return epoll_ctl(epfd, EPOLL_CTL_DEL, ev->data.fd, ev);
 }

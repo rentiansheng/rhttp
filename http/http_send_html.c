@@ -4,12 +4,12 @@ int
 produce_http_header(http_connect_t *con) 
 {
 	char *ptr;
-	read_buffer *rb; 
+	string *rb; 
 	response *out = con->out;
 
-	rb= palloc(con->p, sizeof(read_buffer));
+	rb= palloc(con->p, sizeof(string));
 	ptr = rb->ptr = palloc(con->p, 1024);
-	rb->size = 1024;
+	rb->len = 1024;
 
 	sprintf(ptr, "HTTP/1.1 %d", out->status_code);
 	switch(out->status_code) {

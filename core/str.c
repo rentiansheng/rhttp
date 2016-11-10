@@ -55,7 +55,20 @@ int string_compare(const string *s1, const string *s2){
 	
 }
 
-void string_copy_str_n(const string *b, char *s1, int n){
+int string_compare_str(const string *s1, const char *s2) 
+{
+	int len = strlen(s2);
+	if(len > s1->len) {
+		len = s1->len;
+	}
+
+
+
+	return strncmp(s1->ptr, s2, len);
+}
+
+
+void string_copy_n_to_str(const string *b, char *s1, int n){
 	if(b->ptr == NULL || b->len == 0) {*s1 = 0;return;}
 
 
@@ -119,4 +132,27 @@ void string_get_word_with_split(string * src, string *dst, char split) {
 	dst->len = p - src->ptr;
 
 	return ;
+}
+
+
+void string_get_line_split(string *src, string *dst, char split)
+{
+	 char *p, *end;
+
+	if(src == NULL || src->ptr == NULL) return;
+
+	p = src->ptr;
+	end =src->ptr + src->len;
+
+	while(p < end){
+		if(*p == split){
+			dst->ptr = ++p;
+			dst->len = end - p;
+	 		return;
+		}
+	 	p++;
+	}
+
+	return ;
+
 }

@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include "str.h"
 
 
 int produce_http_header(http_connect_t *con);

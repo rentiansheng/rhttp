@@ -46,14 +46,14 @@ cgi_handle(http_conf *g, http_connect_t *con)
 	cgi->count = 0;
 	if(con->in->http_method == _GET) {
 		add_envp(con->p, cgi, "REQUEST_METHOD" , "GET");
-		char *query_string = (char *)pcalloc(con->p, con->in->args->size+1);
-		strncpy(query_string, con->in->args->ptr, con->in->args->size);
+		char *query_string = (char *)pcalloc(con->p, con->in->args->len+1);
+		strncpy(query_string, con->in->args->ptr, con->in->args->len);
 		add_envp(con->p, cgi, "QUERY_STRING", query_string);
 	}
 	else {
 		add_envp(con->p, cgi, "REQUEST_METHOD" , "POST");
-		char *str_len = (char *) pcalloc(con->p, con->in->content_length->size+1);
-		strncpy(str_len, con->in->content_length->ptr, con->in->content_length->size);
+		char *str_len = (char *) pcalloc(con->p, con->in->content_length->len+1);
+		strncpy(str_len, con->in->content_length->ptr, con->in->content_length->len);
 		add_envp(con->p, cgi, "CONTENT_TYPE", str_len);
 	}
 	

@@ -518,6 +518,8 @@ start_accept(struct http_conf *g)
 	int count; 
 	struct epoll_event ev[MAX_EVENT];
 	epoll_extra_data_t *epoll_data;
+	int evIndex ;
+
 	
 	
 	start_web_server(g);
@@ -525,24 +527,11 @@ start_accept(struct http_conf *g)
 	printf("--------------- start server\n--------------");
 	while(1){
 		count = epoll_wait(g->epfd, ev, MAX_EVENT, -1);
-		while(count-- > 0){
-			epoll_data = (epoll_data_t *)ev[count].data.ptr;
-			if(epoll_data->type  == SERVERFD) {
-				int confd =  accept(g->fd, NULL, NULL);
-				struct pool_t *p = (struct pool_t *)pool_create();
-				http_connect_t * con;
-				epoll_extra_data_t *data_ptr;
-
-				data_ptr = (epoll_extra_data_t *)palloc(p, sizeof(epoll_extra_data_t));
-				con = (http_connect_t *) palloc(p, sizeof(http_connect_t));//换成初始化函数，
-				con->p= p;
-				con->fd = confd;
-				data_ptr->type = SOCKFD;
-				data_ptr->ptr = (void *) con;
-				epoll_add_fd(g->epfd, confd, EPOLL_R, (void *)data_ptr);//对epoll data结构指向的结构体重新封装，分websit
-	 			//data struct ,  connect  data struct , file data struct , 
-			}
-			else if((ev[count].events & EPOLLIN)) {
+		if(count < 0) { count = 0;}
+		
+		for(evIndex = 0; evIndex < count; evIndex++) {
+			epoll_data = (epoll_data_t *)ev[evIndex].data.ptr;
+			if(epoll_data->type  != SERVERF && (ev[count].events & EPOLLIN)) {
 				http_connect_t * con;
 				
 				con = (http_connect_t *) epoll_data->ptr;
@@ -576,9 +565,52 @@ start_accept(struct http_conf *g)
 			}
 			else if(ev[count].events & EPOLLOUT) {
 				
-	 	 	}
+	 	 	}else if(evfd->events & EPOLLRDHUP) {
+				http_connect_t * con;
+				epoll_data = (epoll_data_t *)evfd->data.ptr;
+
+				con = (http_connect_t *) epoll_data->ptr;	
+				if(con->in != NULL) {
+					epoll_edit_fd(g->epfd, evfd, EPOLL_W);
+					
+					pool_destroy(con->p);
+					close(con->fd);
+
+				}
+				con->next_handle = NULL;
+				epoll_del_fd(g->epfd, evfd);
+
+		
+			}
 
 
 	 	} 
+		while( (confd =  accept(g->fd, &addr, &addLen)) && confd > 0) {
+			pool_t *p = (pool_t *)pool_create();
+			http_connect_t * con;
+			epoll_extra_data_t *data_ptr;
+
+			addrIn =  *((struct sockaddr_in *) &addr);
+			data_ptr = (epoll_extra_data_t *)palloc(p, sizeof(epoll_extra_data_t));
+			con = (http_connect_t *) palloc(p, sizeof(http_connect_t));//换成初始化函数，
+			con->p= p;
+			con->fd = confd;
+			con->in = (request *)request_init(p);
+			con->out = (response *)response_init(p);
+			/*char *ip  = NULL;
+			if(addrIn.sin_addr.s_addr) {
+				ip = inet_ntoa(addrIn.sin_addr);
+			}
+
+			if(ip) {
+				//con->in->clientIp = (string *) string_init_from_str(p, ip, strlen(ip));
+			}*/
+
+			con->next_handle = accept_handler;
+			data_ptr->type = SOCKFD;
+			data_ptr->ptr = (void *) con;
+			epoll_add_fd(g->epfd, confd, EPOLL_R, (void *)data_ptr);//对epoll data结构指向的结构体重新封装，分websit
+			//data struct ,  connect  data struct , file data struct ,
+		}
 	} 
 }

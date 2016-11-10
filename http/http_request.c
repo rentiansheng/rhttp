@@ -85,9 +85,7 @@ read_fd(list_buffer *header, pool_t *p, int fd)
 	b = lb->b;
 	while(( size = (size_t)read(fd, b->ptr + b->used, (int)(b->size - b->used))) >= 0) {
 		b->used += size;
-			printf("%s\n");
 		if(size == 0){
-			printf("\n-------------------\n%s\n");
 			return 0;
 		}
 		if(b->size == b->used ) {
@@ -553,6 +551,8 @@ start_accept(struct http_conf *g)
 	int count; 
 	struct epoll_event ev[MAX_EVENT];
 	epoll_extra_data_t *epoll_data;
+	struct epoll_event * evfd;
+
 	int evIndex ;
 
 	
@@ -566,14 +566,15 @@ start_accept(struct http_conf *g)
 		if(count < 0) { count = 0;}
 		
 		for(evIndex = 0; evIndex < count; evIndex++) {
-			epoll_data = (epoll_data_t *)ev[evIndex].data.ptr;
-			if(epoll_data->type  != SERVERF && (ev[count].events & EPOLLIN)) {
+			evfd = ev + evIndex;
+			epoll_data = (epoll_data_t *)evfd->data.ptr;
+			if(epoll_data->type  != SERVERFD && (evfd->events & EPOLLIN)) {
 				http_connect_t * con;
 				
 				con = (http_connect_t *) epoll_data->ptr;
 				switch(epoll_data->type) {
 					case SOCKFD:
-						accept_handler(g, con, ev+count);
+						accept_handler(g, con, evfd);
 	 					break; 
 					case CGIFD: {
 	 					epoll_cgi_t *cgi = (epoll_cgi_t *)epoll_data->ptr;
@@ -586,7 +587,7 @@ start_accept(struct http_conf *g)
 							else {
 								
 							}
-							epoll_del_fd(g->epfd, ev);
+							epoll_del_fd(g->epfd, evfd);
 							pool_destroy(cgi->con->p);
 	 	 					close(cgi->con->fd);
 						}
@@ -599,7 +600,7 @@ start_accept(struct http_conf *g)
 				
 
 			}
-			else if(ev[count].events & EPOLLOUT) {
+			else if(evfd->events & EPOLLOUT) {
 				
 	 	 	}else if(evfd->events & EPOLLRDHUP) {
 				http_connect_t * con;

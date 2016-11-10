@@ -167,7 +167,7 @@ typedef struct epoll_cgi {
 #define _Server "Rhttp" 
 #define _Auth_desc "Rhttp test" 
 #define _Version "0.2.0" 
-
+#define DS_LINEEND "\x0a"
 
 
 #endif

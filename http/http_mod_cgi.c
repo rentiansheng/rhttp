@@ -1,5 +1,17 @@
 #include "http_mod_cgi.h"
 
+/**
+*add system environ 
+*/
+void 
+add_sys_envp(pool_t *p, cgi_ev_t * cgiev) 
+{
+	char ** env = environ;
+	while(*env ){
+		cgiev->ev[cgiev->count++] = *env;
+	}
+}
+
 
 void
 add_envp(pool_t *p, cgi_ev_t * cgiev, char *left, char *right)
@@ -30,6 +42,7 @@ cgi_handle(http_conf *g, http_connect_t *con)
 	pipe(infd);
 	pipe(outfd);
 
+	add_sys_envp(con->p, cgi);
 	cgi->count = 0;
 	if(con->in->http_method == _GET) {
 		add_envp(con->p, cgi, "REQUEST_METHOD" , "GET");

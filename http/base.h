@@ -146,7 +146,7 @@ typedef struct epoll_extra_data {
 }epoll_extra_data_t;
 
 typedef struct cgi_ev {
-	char *ev[20];
+	char *ev[200];
 	int count;
 	int stdin;
 	int stdout;

@@ -11,5 +11,6 @@
 #include "string.h"
 int cgi_handle(http_conf *g, http_connect_t *con);
 
+extern char **environ;
 
 #endif

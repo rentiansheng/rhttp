@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include "base.h"
 
 
 #define MAX_CONNECT 10000
@@ -16,6 +17,7 @@
 
 int socket_listen(char *ip, unsigned short int port);
 
+int start_web_server(struct http_conf *g);
 
 
 

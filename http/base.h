@@ -34,6 +34,13 @@
 #define HTTP_UNDEFINED 544
 
 
+#define MAX_CONNECT 10000
+#define EPOLL_W 1
+#define EPOLL_R 2
+#define SERVERFD 1
+#define SOCKFD 2
+#define CGIFD 3
+
 typedef enum{
 	_GET,
 	_POST,
@@ -73,7 +80,7 @@ typedef struct key {
 
 
 typedef struct fileinfo {
-	read_buffer * name;
+	str * name;
 	size_t len;
 	int fd;
 	void *start;
@@ -113,18 +120,18 @@ typedef struct response{
 }response;
 
 typedef struct request{
-	read_buffer * uri;
-	read_buffer * host;
-	read_buffer *args;
+	str * uri;
+	str * host;
+	str *args;
 
 	
-	read_buffer * authorization;
-	read_buffer * user;
-	read_buffer * pwd;
+	str * authorization;
+	str * user;
+	str * pwd;
 	http_method_t http_method;
-	read_buffer * http_version;
+	str * http_version;
 	COMPRESS_TYPE accept_encoding;	
-	read_buffer * content_length;
+	str * content_length;
 	struct list_buffer *header;
 
 }request;

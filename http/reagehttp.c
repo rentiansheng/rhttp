@@ -13,6 +13,10 @@ main(int argc, char *argv[]) {
 	conf.web_count = 0;
 	conf.mimetype = NULL;
 	err = config_init(conf_path, &conf);
-	start_accept(&conf);	
-
+	if( err ) {
+		printf("error config\n ");
+	} else {
+		http_daemon(&conf)
+		start_accept(&conf);	
+	}
 }

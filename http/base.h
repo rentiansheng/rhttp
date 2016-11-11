@@ -9,14 +9,19 @@
 #include <string.h>
 #include "buffer.h"
 #include "pool.h"
-#include "http_mod_connect.h"
 #include "str.h"
+#include "hash.h"
 
-#define OK 0
+
+
 #define FILE_NO_EXIST 1
 #define FILE_NO_ACCESS 2
+
+#define OK 0
+#define CONTINUE 1
 #define CANCEL 3
 #define DONE 4
+
 #define MEMERROR -1
 #define UNDEFINED   -144
 
@@ -67,14 +72,15 @@ typedef enum {
 	t_int,
 	t_uint,
 	t_long,
+	t_string,
 }value_type;
 
-typedef struct key {
-	char *name;
-	char *value;
+typedef struct rkey {
+	string *name;
+	void *value;
 	value_type type;
-	struct key *next;
-}key;
+	struct rkey_t *next;
+}rkey_t;
 
 
 typedef struct fileinfo {
@@ -85,23 +91,27 @@ typedef struct fileinfo {
 }fileinfo_t;
 
 typedef struct web_conf {
-	char *root;
-	char *index_file;
-	int index_count;
-	char *err404;
-	char *server;
+	string *root;
+	string *index_file;
+	string *err404;
+	string *server;
 	int fd;
 	struct web_conf *next;
-}web_conf;
+}web_conf_t;
+
+
 
 typedef struct http_conf {
 	int web_count;
 	int port;
 	int epfd;
 	int fd;
-	key *mimetype;
-	web_conf *web;
-}http_conf;
+	pool_t *p;
+	string *auth_usr;
+	string *auth_pwd;
+	rkey_t *mimetype;
+	web_conf_t *web;
+}http_conf_t;
 
 
 
@@ -141,7 +151,7 @@ typedef struct http_connect{
 	struct web_conf *web;
 	struct pool_t *p;
 	int fd;
-	int (*next_handle)(http_conf *g, struct  http_connect *con);
+	int (*next_handle)(http_conf_t *g, struct  http_connect *con);
 }http_connect_t;
 
 
@@ -155,7 +165,6 @@ typedef struct cgi_ev {
 	int count;
 	int stdin;
 	int stdout;
-	
 
 }cgi_ev_t;
 

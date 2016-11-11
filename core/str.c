@@ -48,10 +48,9 @@ int string_compare(const string *s1, const string *s2){
         return 1;
     }
 
-	len = s1->len > s2->len?s2->len:s1->len;
-	if(len > 1) len--;
-
-	return (s1->ptr[0] - s2->ptr[0]);
+	return s2->len - s1->len;//bug
+	
+	//return (s1->ptr[0] - s2->ptr[0]);
 	
 }
 
@@ -155,4 +154,29 @@ void string_get_line_split(string *src, string *dst, char split)
 
 	return ;
 
+}
+
+void string_skip_char_left(string *str, char c)
+{
+	if(str == NULL || str->len == 0 || str->ptr == NULL) {
+		return ;
+	}
+	while(*str->ptr == c && str->len >0) {
+		str->ptr += 1;
+		str->len -= 1;
+	}
+
+}
+
+int raw_str_ncmp(char * s1, char * s2, int len) 
+{
+	int len1 = strlen(s1);
+	int len2 = strlen(s2);
+
+
+	if(len1 == len2 && len == len1) return strncmp(s1, s2, len1);
+    
+
+	return len1-len2;//bug不知道谁大
+	
 }

@@ -24,6 +24,10 @@ void string_copy_n_to_str(const string *b, char *s1, int n);
 int  string_get_line(char  *start, char *end, string *dst);
 void string_get_word_with_split(string * src, string *dst, char split);
 void string_get_line_split(string *src, string *dst, char split);
+void string_skip_char_left(string *str, char c);
+
+
+int raw_str_ncmp(char * s1, char * s2, int len);
 
 
 #endif

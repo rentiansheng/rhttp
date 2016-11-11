@@ -22,7 +22,7 @@
 
 #include "base.h"
 
-int http_daemon(http_conf * conf);
+int http_daemon(http_conf_t * conf);
 
 
 #endif

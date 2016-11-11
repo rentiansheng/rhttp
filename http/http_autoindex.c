@@ -8,12 +8,11 @@
 
 
 
-int 
-file_handle(http_conf *g, http_connect_t *con)
+int file_handle(http_conf_t *conf, http_connect_t *con)
 {
 	char *p;
 	int len = 0 ;
-	key *k;
+	rkey_t *k;
 
 	p = strchr(con->out->physical_path->ptr, '.');
 	if(p != NULL) {
@@ -24,7 +23,7 @@ file_handle(http_conf *g, http_connect_t *con)
 			con->next_handle = cgi_handle;
 			return 0;
 		}
-		k = g->mimetype;		
+		k = conf->mimetype;		
 
 		while(k != NULL) {
 
@@ -45,12 +44,11 @@ file_handle(http_conf *g, http_connect_t *con)
 	return 0;
 }
 
-int
-autoindex_handle(http_conf *g, http_connect_t *con)
+int autoindex_handle(http_conf_t *conf, http_connect_t *con)
 {
 	request * in;
 	response *out;
-	web_conf *web;
+	web_conf_t *web;
 	buffer *uri, *tmp;
 	struct stat buf;
 	int path_len;
@@ -76,38 +74,36 @@ autoindex_handle(http_conf *g, http_connect_t *con)
 		}
 		
 		if(uri->used ==  1 || S_ISDIR(buf.st_mode)) {
-			int i;
-			char *index;
-			if(strlen(uri->ptr)> 1)chdir(uri->ptr+1);
-			index = web->index_file;
-			for(i = 0; i < web->index_count; i++) {
-				if(access(index, F_OK) == 0 || access(index, R_OK) == 0) {
-					strcat(uri->ptr, index);
-					uri->used += strlen(uri->ptr);
-					out->physical_path = uri;
-		 			break;
+			if(strlen(uri->ptr)> 1) {
+				if(chdir(uri->ptr+1)) {
+					out->status_code = HTTP_NOT_FOUND;
+					return 0;
 				}
-		 		index = index + strlen(index);
 			}
-			chdir(web->root);
+			string * index = web->index_file;
+			if(access(index->ptr, F_OK) == 0 ) {
+				strcat(uri->ptr, index);
+				uri->used += strlen(uri->ptr);
+				out->physical_path = uri;
+				chdir(web->root);
 
-			if( i == web->index_count) {
+			} else {
 				out->status_code = HTTP_NOT_FOUND;
-				return 1;
-		 	}
-		}
-		else if(S_ISREG(buf.st_mode)) {
+				return 0;
+			}
+
+			
+			
+		}else if(S_ISREG(buf.st_mode)) {
 			if(access(uri->ptr+1,F_OK|R_OK) == 0) {
 				out->physical_path = uri;
-			}
+			}else {
+				out->status_code = HTTP_NOT_FOUND;
+				return 0;
+			}  
 			
 		}
-		else {
-			out->status_code = HTTP_NOT_FOUND;
-			return 0;
-		}  
-	}
-	else {
+	}else {
 		out->status_code = HTTP_NOT_FOUND;
 		
 		return  0;

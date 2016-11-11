@@ -51,7 +51,7 @@ int http_init_daemon(struct http_conf * conf)
 }
 
 
-static http_init_children(struct http_conf * conf) 
+static http_init_children(http_conf_t * conf) 
 {
     int pid = 0;//0标识运行accept和cgi， 1 标识只允许faccept, 2fork cgi进程
 
@@ -71,7 +71,7 @@ static http_init_children(struct http_conf * conf)
 }
 
 
-int http_daemon(struct http_conf * conf)
+int http_daemon(http_conf_t * conf)
 {  
     int uid = getuid();
     int gid = getgid();

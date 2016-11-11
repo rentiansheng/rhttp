@@ -45,7 +45,7 @@ int socket_listen(char *ip, unsigned short int port)
 }
 
 
-int start_web_server(struct http_conf *g)
+int start_web_server(http_conf_t * conf)
 {
 	struct web_conf *web;
 	int count ;
@@ -53,23 +53,23 @@ int start_web_server(struct http_conf *g)
 	int fd = 0;
 	epoll_extra_data_t *data;
 
-	count = g->web_count;
-	web = g->web;
+	count = conf->web_count;
+	web = conf->web;
 
 	data = (epoll_extra_data_t *) malloc(sizeof(epoll_extra_data_t));
 
 	data->type = SERVERFD;
-	if(g->port <=0) g->port = 80;
+	if(conf->port <=0) conf->port = 80;
 	epfd = epoll_init(MAX_CONNECT);
 	//while(count--){
-	fd = socket_listen("127.0.0.1", g->port);
+	fd = socket_listen("127.0.0.1", conf->port);
 	//	web->fd = fd;
 	epoll_add_fd(epfd, fd,EPOLL_R, data);
 	//	web = web->next;
 	//}
 	
-	g->fd = fd;
-	g->epfd = epfd;
+	conf->fd = fd;
+	conf->epfd = epfd;
 
 	return epfd;
 }

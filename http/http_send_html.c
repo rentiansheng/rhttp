@@ -106,7 +106,7 @@ http_send_body(http_connect_t *con)
 }
 
 int 
-http_send(http_conf *g, http_connect_t *con)
+http_send(http_conf_t *conf, http_connect_t *con)
 {
 	if(con->out->status_code == HTTP_UNAUTHORIZED) {
 		send_unauthorized(con->fd);

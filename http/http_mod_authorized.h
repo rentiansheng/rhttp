@@ -17,5 +17,5 @@
 
 #define AUTH_PAGES "noauth.html"
 
-int authorized_handle(http_conf *g, http_connect_t *con);
+int authorized_handle(http_conf_t *conf, http_connect_t *con);
 #endif

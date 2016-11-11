@@ -2,18 +2,18 @@
 
 
 void 
-virtual_port_match(http_conf *g, http_connect_t *con)
+virtual_port_match(http_conf_t *conf, http_connect_t *con)
 {
 	int port ;
 	string *rbport;
 	string *host;
-	web_conf *web;
+	web_conf_t *web;
 
 
 	con->web = NULL;
 	rbport = (string *)palloc(con->p, sizeof(string));
 	host = con->in->host;
-	web = g->web;
+	web = conf->web;
 	//一下是为了支持多个端口绑定
 	string_get_line_split(host, rbport, ':');
 

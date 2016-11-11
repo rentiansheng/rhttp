@@ -35,7 +35,7 @@ request_init(pool_t *p)
 }
 
 int
-accept_handler(http_conf *g, http_connect_t *con, struct epoll_event *ev)
+accept_handler(http_conf_t *conf, http_connect_t *con, struct epoll_event *ev)
 {
 
  	con->in = (request *)request_init(con->p); 
@@ -45,7 +45,7 @@ accept_handler(http_conf *g, http_connect_t *con, struct epoll_event *ev)
 			|| con->in->header->b->size <= 0) {
 
 			send_bad_request(con->fd);
-			epoll_del_fd(g->epfd, ev);
+			epoll_del_fd(conf->epfd, ev);
 			close(con->fd);
 			pool_destroy(con->p);
 			return -1;
@@ -54,8 +54,8 @@ accept_handler(http_conf *g, http_connect_t *con, struct epoll_event *ev)
 		parse_header(con);  
 		list_buffer_to_lower(con->in->header);
 		con->next_handle = authorized_handle;
-		virtual_port_match(g, con);
-		epoll_edit_fd(g->epfd, ev, EPOLL_W);
+		virtual_port_match(conf, con);
+		epoll_edit_fd(conf->epfd, ev, EPOLL_W);
 		/*是否需要登录
 		*提交方式
 		*主页匹配
@@ -66,10 +66,10 @@ accept_handler(http_conf *g, http_connect_t *con, struct epoll_event *ev)
 		//con = ev[count].data.ptr;
 
 		con->out = (response *)response_init(con->p);
-		while(con->next_handle != NULL && con->next_handle(g, con) == 0){	
+		while(con->next_handle != NULL && con->next_handle(conf, con) == 0){	
 		}
 		
- 		epoll_del_fd(g->epfd, ev);
+ 		epoll_del_fd(conf->epfd, ev);
 					
 	}
 
@@ -159,12 +159,12 @@ cgi_parse_handler(epoll_cgi_t *cgi)
 }
 
 void 
-http_accept_request_socket(struct http_conf * g) {
+http_accept_request_socket(http_conf_t * conf, int fd) {
 	int confd  ;
 	struct sockaddr addr;
 	struct sockaddr_in addrIn;
 	socklen_t addLen = sizeof(struct sockaddr );
-	while( (confd =  accept(g->fd, &addr, &addLen)) && confd > 0) {
+	while( (confd =  accept(fd, &addr, &addLen)) && confd > 0) {
 		pool_t *p = (pool_t *)pool_create();
 		http_connect_t * con;
 		epoll_extra_data_t *data_ptr;
@@ -188,13 +188,13 @@ http_accept_request_socket(struct http_conf * g) {
 		con->next_handle = accept_handler;
 		data_ptr->type = SOCKFD;
 		data_ptr->ptr = (void *) con;
-		epoll_add_fd(g->epfd, confd, EPOLL_R, (void *)data_ptr);//对epoll data结构指向的结构体重新封装，分websit
+		epoll_add_fd(conf->epfd, confd, EPOLL_R, (void *)data_ptr);//对epoll data结构指向的结构体重新封装，分websit
 		//data struct ,  connect  data struct , file data struct ,
 	}
 }
 
 int
-start_accept(struct http_conf *g)
+start_accept(http_conf_t *conf)
 {
 	int count; 
 	struct epoll_event ev[MAX_EVENT];
@@ -205,12 +205,12 @@ start_accept(struct http_conf *g)
 
 	
 	
-	start_web_server(g);
+	start_web_server(conf);
 	
 	printf("--------------- start server\n--------------");
 	while(1){
-		count = epoll_wait(g->epfd, ev, MAX_EVENT, -1);
-		http_accept_request_socket(g);
+		count = epoll_wait(conf->epfd, ev, MAX_EVENT, -1);
+		http_accept_request_socket(conf, conf->fd);
 		if(count < 0) { count = 0;}
 		
 		for(evIndex = 0; evIndex < count; evIndex++) {
@@ -222,7 +222,7 @@ start_accept(struct http_conf *g)
 				con = (http_connect_t *) epoll_data->ptr;
 				switch(epoll_data->type) {
 					case SOCKFD:
-						accept_handler(g, con, evfd);
+						accept_handler(conf, con, evfd);
 	 					break; 
 					case CGIFD: {
 	 					epoll_cgi_t *cgi = (epoll_cgi_t *)epoll_data->ptr;
@@ -235,7 +235,7 @@ start_accept(struct http_conf *g)
 							else {
 								
 							}
-							epoll_del_fd(g->epfd, evfd);
+							epoll_del_fd(conf->epfd, evfd);
 							pool_destroy(cgi->con->p);
 	 	 					close(cgi->con->fd);
 						}
@@ -244,6 +244,11 @@ start_accept(struct http_conf *g)
 						
 		 				break;
 	 	 			}
+					case SERVERFD:
+						//有多个web配置的时候可用 以后测试
+						//http_accept_request_socket(g, con->fd);
+						//接受连接
+						break;
 	 	 		}
 				
 
@@ -256,14 +261,14 @@ start_accept(struct http_conf *g)
 
 				con = (http_connect_t *) epoll_data->ptr;	
 				if(con->in != NULL) {
-					epoll_edit_fd(g->epfd, evfd, EPOLL_W);
+					epoll_edit_fd(conf->epfd, evfd, EPOLL_W);
 					
 					pool_destroy(con->p);
 					close(con->fd);
 
 				}
 				con->next_handle = NULL;
-				epoll_del_fd(g->epfd, evfd);
+				epoll_del_fd(conf->epfd, evfd);
 
 		
 			}

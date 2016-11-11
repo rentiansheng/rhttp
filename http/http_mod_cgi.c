@@ -30,7 +30,7 @@ add_envp(pool_t *p, cgi_ev_t * cgiev, char *left, char *right)
 
 
 int
-cgi_handle(http_conf *g, http_connect_t *con)
+cgi_handle(http_conf_t *conf, http_connect_t *con)
 {
 	con->next_handle = NULL;
 
@@ -100,7 +100,7 @@ cgi_handle(http_conf *g, http_connect_t *con)
 			extra->type = CGIFD;
 			extra->ptr = (void *) cgi_extra;
 			
-			epoll_add_fd(g->epfd, infd[0], EPOLL_R, (void *)extra);
+			epoll_add_fd(conf->epfd, infd[0], EPOLL_R, (void *)extra);
 			break;
 		}
 	}

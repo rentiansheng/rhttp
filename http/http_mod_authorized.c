@@ -1,6 +1,6 @@
 #include "http_mod_authorized.h"
 
-int authorized_handle(http_conf *g, http_connect_t *con)
+int authorized_handle(http_conf_t *conf, http_connect_t *con)
 {
 	int result;
 	char usr[20];

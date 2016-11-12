@@ -27,9 +27,6 @@ hash_t * hash_init_size(pool_t *p, int size) {
 
 }
 
-
-
-
 int hash_add_int(pool_t *p, hash_t  *h, const char  *key, int keyLen, int  v) {
     return hash_add(p, h ,key, keyLen, &v, HASH_ITEM_VALUE_TYPE_INT);
 }
@@ -267,5 +264,3 @@ static unsigned int hash_index(hash_t * h, char *ptr, int len) {
     return index;
 
 }
-
-

@@ -1,37 +1,43 @@
 #include "config.h"
 
-char 
-is_char(int c)
+char is_char(int c)
 {
 	if( ('Z' >= c && 'A' <= c) || ('z' >= c && 'a' <= c))
 		return 1;
 	return 0;
 }
 
+int get_name_value(char **name_ptr, char **value_ptr, char *line ) {
 
-int set_auth(FILE *f, http_conf_t *conf, int *row) {
-	char line[1024];
-	int len = strlen(line);
-	int err = read_line(f, line, row);
-	if(err) { return 0;}
+	char *name = line;
+	char *value = NULL;
+	char *end = NULL;
 
-	string * auth = string_init_from_str(conf->p, line, len);
-
-	conf->auth_usr = string_init(conf->p);
-	conf->auth_pwd = string_init(conf->p);
-
-	string_get_word_with_split(auth, conf->auth_usr, ':');
-	if(conf->auth_usr->len == 0 || conf->auth_usr->ptr == NULL ) {
-		return 26;
+	char * split = strchr(name, ':');
+	if(split == NULL)
+	{
+		if(strchr(name, ')') == NULL)return 2;
 	}
+	end = split - 1;
+	while(*end == ' ' && end >= name) end--;
+	if(end < name) return 15;//配置节点的名字不能为空
+	*(end+1) = 0;
+	
+	split++;
+	value = split;
+	while(*value == ' ') value++;
+	end = split+strlen(split) - 1;
+	while(*end-- == ' ' && end >=value)end --;
+	if(end < value) return 15;//配置节点的名字不能为空
+	*(end+1) = 0;
 
-	if(conf->auth_pwd->len == 0 || conf->auth_pwd->ptr == NULL) {
-		return 27;
-	}
+	*name_ptr = name;
+	*value_ptr = value;
 
 	return 0;
-
 }
+
+
 /*
 *读取配置文件的信息
 *@paramter
@@ -64,6 +70,7 @@ int config_init(char *path, http_conf_t *conf)
 
 
 
+
 int parse_line(FILE *f, char *line,int  *row, http_conf_t *conf) 
 {
 	char *split;
@@ -87,7 +94,11 @@ int parse_line(FILE *f, char *line,int  *row, http_conf_t *conf)
 	}else if(strncmp(line, "mimetype", 8) == 0){
 		if((err = set_mimetype(f, conf, row))) return err;
 	} else if(strncmp(line, "auth", 4) == 0) {
-		if(err = set_auth(f, conf, row) ) return err;
+		char *usr, *pwd;
+		get_name_value(&usr, &pwd, name);
+
+		conf->auth_pwd = string_init_from_str(conf->p, usr, strlen(usr));
+		conf->auth_pwd = string_init_from_str(conf->p, pwd, strlen(pwd));
 
 	}else {
 		return 4;//不能识别的配置节点
@@ -145,7 +156,7 @@ int set_web(FILE *f, http_conf_t *conf, int *row)
 {
 	char line[1024];
 	char *name, *split, *end;
-	char *value,  *item;
+	char *value;
 	struct web_conf *web;
 	
 	web = (struct web_conf_t *)pcalloc(conf->p, sizeof(web_conf_t));
@@ -155,8 +166,9 @@ int set_web(FILE *f, http_conf_t *conf, int *row)
 	web->index_file = NULL;
 	web->root = NULL;
 	web->server = NULL;
+	web->auth_pwd = NULL;
+	web->auth_usr = NULL;
 	while(!read_line(f, line, row)){
-		printf("%s\n", line);
 		if(strlen(line) == 0) continue;
 		name = line;
 		split = strchr(name, ':');
@@ -180,15 +192,19 @@ int set_web(FILE *f, http_conf_t *conf, int *row)
 		
 		if(raw_str_ncmp("root", name, 4) == 0) {
 			web->root = string_init_from_str(conf->p, value, strlen(value));
-		}
-		else if(raw_str_ncmp( "indexfile", name, 9) == 0) {
+		}else if(raw_str_ncmp( "indexfile", name, 9) == 0) {
 			web->index_file = string_init_from_str(conf->p, value, strlen(value));
 							
-		}
-		else if(raw_str_ncmp("404_page", name, 8) == 0) {
+		}else if(raw_str_ncmp("404_page", name, 8) == 0) {
 			web->err404 = string_init_from_str(conf->p, value, strlen(value));
-		}
-		else {
+		} else if(raw_str_ncmp("auth", name, 4) == 0) {
+		
+			char *usr , *pwd;
+			get_name_value(&usr, &pwd, value);
+
+			conf->auth_pwd = string_init_from_str(conf->p, usr, strlen(usr));
+			conf->auth_pwd = string_init_from_str(conf->p, pwd, strlen(pwd));
+		}else {
 			return 14;//不能识别的配置节点
 		}
 

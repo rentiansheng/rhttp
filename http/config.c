@@ -51,7 +51,9 @@ int config_init(char *path, http_conf_t *conf)
 	
 	while(!read_line(f, line, &row)){
 		if(strlen(line) == 0 ) continue;
-		if((err = parse_line(f, line, &row, conf))) return err;
+		if((err = parse_line(f, line, &row, conf))) {
+			return err;
+		}
 	}
 
 	return 0;
@@ -117,8 +119,8 @@ int set_mimetype(FILE * f, http_conf_t *conf, int *row)
 		if(end < name) return 15;//配置节点的名字不能为空
 		*(end + 1) = 0;
 
-
-		value = split+1;
+		split ++;
+		value = split;
 		while(*value == ' ') value++;
 		end = split + strlen(split) - 1;
 		while(*end == ' ' && end >= value)end --;
@@ -154,6 +156,7 @@ int set_web(FILE *f, http_conf_t *conf, int *row)
 	web->root = NULL;
 	web->server = NULL;
 	while(!read_line(f, line, row)){
+		printf("%s\n", line);
 		if(strlen(line) == 0) continue;
 		name = line;
 		split = strchr(name, ':');
@@ -167,22 +170,22 @@ int set_web(FILE *f, http_conf_t *conf, int *row)
 		if(end < name) return 15;//配置节点的名字不能为空
 		*(end+1) = 0;
 		
-		
-		value = split+1;
+		split++;
+		value = split;
 		while(*value == ' ') value++;
 		end = split+strlen(split) - 1;
 		while(*end-- == ' ' && end >=value)end --;
 		if(end < value) return 15;//配置节点的名字不能为空
 		*(end+1) = 0;
 		
-		if(raw_str_ncmp("root", value, 4) == 0) {
+		if(raw_str_ncmp("root", name, 4) == 0) {
 			web->root = string_init_from_str(conf->p, value, strlen(value));
 		}
-		else if(raw_str_ncmp( "indexfile", value, 10) == 0) {
+		else if(raw_str_ncmp( "indexfile", name, 9) == 0) {
 			web->index_file = string_init_from_str(conf->p, value, strlen(value));
 							
 		}
-		else if(raw_str_ncmp("404_page", value, 8) == 0) {
+		else if(raw_str_ncmp("404_page", name, 8) == 0) {
 			web->err404 = string_init_from_str(conf->p, value, strlen(value));
 		}
 		else {
@@ -220,6 +223,7 @@ int read_line(FILE *f, char *line, int *row)
 		zs = 2;
 	}
 	
+
 	return 1;//read end
 
 }

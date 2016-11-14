@@ -12,6 +12,7 @@ int main(int argc, char *argv[]) {
 	pool_t *p = (pool_t *) pool_create();
 
 	http_conf_t * conf = (http_conf_t *)pcalloc(p, sizeof(http_conf_t));
+	conf->p = p;
 
 
 

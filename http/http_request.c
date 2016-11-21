@@ -12,7 +12,7 @@ response_init(pool_t *p)
 	response *out;
     
  	out = palloc(p, sizeof(response));
- 	out->status_code = HTTP_UNDEFINED;
+ 	out->status_code = HTTP_OK;
 	out->content_length = 0;
 	out->server  = NULL;
 	out->date = NULL;

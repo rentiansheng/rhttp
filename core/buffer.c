@@ -22,7 +22,7 @@ buffer * buffer_init(pool_t *p)
 
 buffer *buffer_create_size(pool_t *p, size_t len)
 {
-	buffer *b = buffer_init(p);
+	buffer *b =  (buffer *)palloc(p, sizeof(buffer));
 	b->ptr = (char *)palloc(p, len);
 	b->size = len;
 	b->used = 0;

@@ -25,9 +25,10 @@ int  string_get_line(char  *start, char *end, string *dst);
 void string_get_word_with_split(string * src, string *dst, char split);
 void string_get_line_split(string *src, string *dst, char split);
 void string_skip_char_left(string *str, char c);
-
+void string_split_kv(string * src, string *key, string *value, char split);
 
 int raw_str_ncmp(char * s1, char * s2, int len);
 
+void string_skip_char(string *str, char c) ;
 
 #endif

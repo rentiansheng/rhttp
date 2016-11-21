@@ -41,8 +41,8 @@ accept_handler(http_conf_t *conf, http_connect_t *con, struct epoll_event *ev)
  	con->in = (request *)request_init(con->p); 
 
 	if(read_header(con) == 0) {
-		if(con->in->header == NULL || con->in->header->b == NULL 
-			|| con->in->header->b->size <= 0) {
+		if(con->in->header == NULL 
+			|| con->in->header->used <= 0) {
 
 			send_bad_request(con->fd);
 			epoll_del_fd(conf->epfd, ev);
@@ -52,7 +52,7 @@ accept_handler(http_conf_t *conf, http_connect_t *con, struct epoll_event *ev)
 		}	
 	
 		parse_header(con);  
-		list_buffer_to_lower(con->in->header);
+		//list_buffer_to_lower(con->in->header);
 		con->next_handle = authorized_handle;
 		virtual_port_match(conf, con);
 		epoll_edit_fd(conf->epfd, ev, EPOLL_W);

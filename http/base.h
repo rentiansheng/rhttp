@@ -142,7 +142,7 @@ typedef struct request{
 	string * http_version;
 	COMPRESS_TYPE accept_encoding;	
 	string * content_length;
-	struct list_buffer *header;
+	buffer *header;
 
 }request;
 
@@ -173,8 +173,8 @@ typedef struct cgi_ev {
 typedef struct epoll_cgi {
 	http_connect_t *con;
 	int fd;
-	struct list_buffer *cgi_data;
-	list_buffer *out;
+	buffer *cgi_data;
+	buffer *out;
 	
 	
 }epoll_cgi_t;

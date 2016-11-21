@@ -57,13 +57,14 @@ int string_compare(const string *s1, const string *s2){
 int string_compare_str(const string *s1, const char *s2) 
 {
 	int len = strlen(s2);
-	if(len > s1->len) {
-		len = s1->len;
+	if(len != s1->len) {
+		return -1;
 	}
 
 
 
-	return strncmp(s1->ptr, s2, len);
+
+	return strncmp(s1->ptr, s2, s1->len);
 }
 
 
@@ -133,6 +134,42 @@ void string_get_word_with_split(string * src, string *dst, char split) {
 	return ;
 }
 
+void string_split_kv(string * src, string *key, string *value, char split) {
+
+	char *p, *end;
+	p = src->ptr;
+	end = src->ptr + src->len;
+	key->len = 0;
+
+	if(src == NULL || src->ptr == NULL || src->len == 0) {
+		return ;
+	}
+	
+	while(' ' == *p && p != NULL) {
+		if(end >  p) {return ;}
+		p++;
+	}
+	
+	if(p > end) {
+		return ;
+	}
+
+	while(*p != split && p < end) {
+		p++;
+	}
+
+	key->ptr = src->ptr;
+	key->len = p - src->ptr;
+
+	value->ptr = p + 1;
+	value->len = src->len - key->len -1;
+	if(value->len < 0) {
+		value->len = 0;
+	}
+
+	return ;
+}
+
 
 void string_get_line_split(string *src, string *dst, char split)
 {
@@ -166,6 +203,21 @@ void string_skip_char_left(string *str, char c)
 		str->len -= 1;
 	}
 
+}
+
+void string_skip_char(string *str, char c) {
+	if(str == NULL || str->len == 0 || str->ptr == NULL) {
+		return ;
+	}
+	char *end = str->ptr + str->len;
+	while(*str->ptr == c && str->len > 0) {
+		str->ptr +=1;
+		str->len -= 1;
+	}
+	while(*end == c && str->len > 0) {
+		end--;
+		str->len -= 1;
+	}
 }
 
 int raw_str_ncmp(char * s1, char * s2, int len) 

@@ -27,7 +27,8 @@ int file_handle(http_conf_t *conf, http_connect_t *con)
 
 		while(k != NULL) {
 
-			if(len == strlen(k->name+1) && strncmp(p, k->name+1, len) == 0) {
+			//if(len == strlen(k->name+1) && strncmp(p, k->name+1, len) == 0) {
+			if(string_compare_str(k->name, p)) {
 				con->out->content_type = buffer_init(con->p);
 				con->out->content_type->ptr = k->value;
 				con->out->content_type->size = con->out->content_type->size = strlen(k->value);
@@ -57,7 +58,7 @@ int autoindex_handle(http_conf_t *conf, http_connect_t *con)
 	out = con->out;
 	web = con->web;
 	path_len = in->uri->len + 1;
-	uri = buffer_create_size(con->p, path_len + AUTOPAGELEN);
+	uri = buffer_create_size(con->p, path_len);
 
 	memset(uri->ptr, 0, path_len);
 	uri->used = in->uri->len;
@@ -67,7 +68,7 @@ int autoindex_handle(http_conf_t *conf, http_connect_t *con)
 
 
 	con->next_handle = http_send;
-	if(chdir(web->root) == 0 ) {
+	if(chdir(web->root->ptr) == 0 ) {
 		if(strlen(uri->ptr)>1 && stat(uri->ptr+1, &buf) != 0 ) {
 			out->status_code = HTTP_NOT_FOUND;
 			return 0;
@@ -82,8 +83,10 @@ int autoindex_handle(http_conf_t *conf, http_connect_t *con)
 			}
 			string * index = web->index_file;
 			if(access(index->ptr, F_OK) == 0 ) {
-				strcat(uri->ptr, index);
-				uri->used += strlen(uri->ptr);
+				/*strcat(uri->ptr, index);
+
+				uri->used += strlen(uri->ptr);*/
+				buffer_append_connent(con->p, uri ,index->ptr, index->len);
 				out->physical_path = uri;
 				chdir(web->root);
 

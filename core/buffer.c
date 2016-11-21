@@ -2,27 +2,25 @@
  * st: 127.0.0.1
  *
  * Copyright (C) Reage
- * blog:http://www.rhttp.cn
+ * blog:http://www.ireage.cn
  */
 
 #include "buffer.h"
 
-buffer * 
-buffer_init(pool_t *p)
+buffer * buffer_init(pool_t *p)
 {
 	buffer *b;
 	
 	b = (buffer *)palloc(p, sizeof(buffer));
 	
-	b->ptr = NULL;
-	b->size = 0;
+	b->ptr = (char *)palloc(p, BUFFER_PIECE_SIZE);
+	b->size = BUFFER_PIECE_SIZE;
 	b->used = 0;
 
 	return b;
 }
 
-buffer *
-buffer_create_size(pool_t *p, size_t len)
+buffer *buffer_create_size(pool_t *p, size_t len)
 {
 	buffer *b = buffer_init(p);
 	b->ptr = (char *)palloc(p, len);
@@ -32,9 +30,38 @@ buffer_create_size(pool_t *p, size_t len)
 	return b;
 }
 
+void buffer_append_char(buffer *b, char c, pool_t *p)
+{
+	char * ptr;
 
-int  
-buffer_get_word_with_split(buffer *src, string *dst, char split)
+	if(b->used  == b->size) {
+		int size = b->size<<1;
+		
+		ptr = (char *)palloc(p, size);
+		memcpy(ptr, b->ptr, b->size);
+		b->ptr = ptr;
+		b->size = size;
+	}
+
+	b->ptr[b->used++] = c;
+
+}
+
+void buffer_append_str(buffer *b, char *str, int len, pool_t *p)
+{
+	buffer_prepare_int(p, b, b->used+len);
+	memcpy(b->ptr + b->used, str, len);
+	b->used += len;
+}
+
+void buffer_append_n_str(buffer *b, char *str, int len, pool_t *p)
+{
+	buffer_prepare_int(p, b, b->used+len);
+	strncat(b->ptr, str, len);
+	b->used += len;
+}
+
+int  buffer_get_word_with_split(buffer *src, string *dst, char split)
 {
 	char *p, *end;
 
@@ -59,8 +86,7 @@ buffer_get_word_with_split(buffer *src, string *dst, char split)
 }
 
 
-int 
-buffer_get_line(buffer *src, string * dst)
+int buffer_get_line(buffer *src, string * dst)
 {
 	char *p, *end;
 
@@ -87,16 +113,14 @@ buffer_get_line(buffer *src, string * dst)
 	return 0;
 }
 
-void  
-buffer_clear(buffer *b)
+void  buffer_clear(buffer *b)
 {
 	free(b->ptr);
 	b->size = 0;
 	b->used = 0;
 }
 
-list_buffer *
-list_buffer_create(pool_t *p)
+list_buffer *list_buffer_create(pool_t *p)
 {
 	list_buffer * b;
 	
@@ -107,8 +131,7 @@ list_buffer_create(pool_t *p)
 	return b;
 }
 
-list_buffer *
-list_buffer_add(pool_t *p, list_buffer *lb)
+list_buffer *list_buffer_add(pool_t *p, list_buffer *lb)
 {	
 	if(lb->b != NULL) {
 		while(lb->next != NULL && lb->b != NULL) lb = lb->next;
@@ -122,16 +145,14 @@ list_buffer_add(pool_t *p, list_buffer *lb)
 	return lb;
 }
 
-list_buffer *
-list_buffer_last(list_buffer *lb)
+list_buffer *list_buffer_last(list_buffer *lb)
 {
 	while(lb->next != NULL) lb = lb->next;
 
 	return lb;
 }
 
-void
-list_buffer_to_lower(list_buffer *lb)
+void list_buffer_to_lower(list_buffer *lb)
 {
 	buffer *b ;
 	
@@ -142,8 +163,7 @@ list_buffer_to_lower(list_buffer *lb)
 }
 
 
-void 
-buffer_n_to_lower(buffer *src, int n)
+void buffer_n_to_lower(buffer *src, int n)
 {
 	if(n > 0) {
 		if(src != NULL && src->ptr != NULL) {
@@ -159,8 +179,7 @@ buffer_n_to_lower(buffer *src, int n)
 	}
 }
 
-void 
-buffer_find_str(buffer *src, buffer *dst, char *str) {
+void buffer_find_str(buffer *src, buffer *dst, char *str) {
 	char *p;
 
 	if(src != NULL && src->ptr != NULL && src->size > 0 && str != NULL) {
@@ -177,8 +196,7 @@ buffer_find_str(buffer *src, buffer *dst, char *str) {
 }
 
 
-void 
-list_buffer_used_to_zero(list_buffer *lb)
+void list_buffer_used_to_zero(list_buffer *lb)
 {
 	while(lb != NULL) {
 		lb->b->size = lb->b->used;
@@ -188,24 +206,21 @@ list_buffer_used_to_zero(list_buffer *lb)
 }
 
 
-int 
-buffer_prepare_int(pool_t *p, buffer * b, size_t size)
+int buffer_prepare_int(pool_t *p, buffer * b, size_t size)
 {
 	if((0 == b->size) ||
-		(size > b->size))
-	{
-		if(b->size) free(b->ptr);
+		(size > b->size)) {
 		b->size = size;
-		b->ptr = (char *)palloc(p, b->size);
+		char *ptr = (char *)palloc(p, b->size);
+		memcpy(ptr, b->ptr, b->used*sizeof(char));
+		b->ptr = ptr;
 	}
-	b->used = 0;
 
 	return 0;
 }
 
 
-int 
-buffer_to_lower(buffer *b)
+int buffer_to_lower(buffer *b)
 {
 	char * c ;
 	if(0 == b->used) return 0;
@@ -221,8 +236,7 @@ buffer_to_lower(buffer *b)
 	return 0;
 }
 
-int 
-buffer_to_upper(buffer *b)
+int buffer_to_upper(buffer *b)
 {
 	char * c ;
 
@@ -240,31 +254,27 @@ buffer_to_upper(buffer *b)
 }
 
 
-int 
-buffer_is_equal(buffer *a, buffer *b) {
+int buffer_is_equal(buffer *a, buffer *b) {
 	if (a->used != b->used) return 0;
 
 	return (0 == strcmp(a->ptr, b->ptr));
 }
 
-int 
-buffer_caseless_compare(buffer *a, buffer *b) {
+int buffer_caseless_compare(buffer *a, buffer *b) {
 	if (a->used != b->used) return 0;
 	if (0 == a->used && 0 == b->used) return 1;
 
 	return (0 == strcasecmp(a->ptr, b->ptr));
 }
 
-int 
-buffer_is_equal_len(buffer *a, buffer *b, size_t len) {
+int buffer_is_equal_len(buffer *a, buffer *b, size_t len) {
 	if (a->used != b->used) return 0;
 	if (0 == a->used && 0 == b->used) return 1;
 
 	return (0 == strncmp(a->ptr, b->ptr, len));
 }
 
-int 
-buffer_caseless_compare_len(buffer *a, buffer *b) {
+int buffer_caseless_compare_len(buffer *a, buffer *b) {
 	if (a->used != b->used) return 0;
 	if (0 == a->used && 0 == b->used) return 1;
 
@@ -273,8 +283,7 @@ buffer_caseless_compare_len(buffer *a, buffer *b) {
 
 
 
-int 
-buffer_path_simplify(buffer *dest, const buffer *src)
+int buffer_path_simplify(buffer *dest, const buffer *src)
 {
 	int count;
 	char c;
@@ -358,6 +367,17 @@ buffer_path_simplify(buffer *dest, const buffer *src)
 
 	*out = '\0';
 	dest->used = (out - start);
+	return 0;
+}
+
+
+int buffer_append_connent(pool_t *p, buffer *dst, const char *b, size_t len) {
+	buffer_prepare_int(p, dst, dst->used+len+1);
+
+	memcpy(dst->ptr+dst->used, b, len*sizeof(char));
+
+	dst->used += len ;
+
 	return 0;
 }
 

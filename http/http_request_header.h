@@ -11,9 +11,8 @@
 #include "base64.h"
 #include "http_send_page.h"
 
-static int read_fd(list_buffer *header, pool_t *p, int fd);
 
-static int read_http_header(list_buffer *header, pool_t *p, int fd);
+static int read_http_header(buffer *header, pool_t *p, int fd);
 
 int read_header(http_connect_t *con);
 

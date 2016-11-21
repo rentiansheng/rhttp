@@ -7,6 +7,12 @@ int authorized_handle(http_conf_t *conf, http_connect_t *con)
 	char pwd[40];
 
 	usr[0] =  pwd[0] = 0;
+
+
+	if((con->web->auth_usr == NULL && conf->auth_usr == NULL) || (con->web->auth_usr->len == 0 && conf->auth_usr->len == 0)) {
+		con->next_handle = autoindex_handle;
+		return 0;
+	}
 	if(con->in->user != NULL  &&  con->in->pwd != NULL) {
 		string_copy_n_to_str(con->in->user, usr, con->in->user->len);
 		string_copy_n_to_str(con->in->pwd, pwd, con->in->user->len);
@@ -14,7 +20,7 @@ int authorized_handle(http_conf_t *conf, http_connect_t *con)
 
 	/* 身份验证*/
 	result = 0;
-	con->next_handle = http_send;
+	
 	if(strcmp(usr,"1234") == 0 && strcmp(pwd, "1234") == 0) {
 		con->next_handle = autoindex_handle;
 	}

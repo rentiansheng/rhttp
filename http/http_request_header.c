@@ -1,72 +1,21 @@
 #include "http_request_header.h"
 
 
-static int read_fd(list_buffer *header, pool_t *p, int fd)
+
+static int read_http_header(buffer *header, pool_t *p, int fd)
 {
-	list_buffer *lb, *tmplb;
-	buffer *b;
-	int palloc_size = 1024;
-	int count;
-	int size;
+	char c;
 
-	lb = list_buffer_last(header);
-	if(lb->b ==	NULL) {
-		lb->b = buffer_create_size(p, palloc_size);
-		memset(lb->b->ptr, 0, 1024);
-	}
-
-	
-	b = lb->b;
-	while(( size = (size_t)read(fd, b->ptr + b->used, (int)(b->size - b->used))) >= 0) {
-		b->used += size;
-		if(size == 0){
-			return 0;
-		}
-		if(b->size == b->used ) {
-			tmplb  = list_buffer_add(p, header);
-			tmplb->b = buffer_create_size(p, palloc_size);
-			adjust_header(lb, tmplb);
-			lb= tmplb;
-			b = lb->b;
+	while(read(fd, &c, 1)) {
+		buffer_append_char(header,c,p);
+		if(c == '\n' && header->used >= 2) {
+			char *ptr =  header->ptr + header->used - 2;
+			if(strncasecmp(ptr, "\n\n", 2) == 0) {
+				return 0;
+			}
 		}
 	}
 
-	return 1;
-}
-
-static int read_http_header(list_buffer *header, pool_t *p, int fd)
-{
-	list_buffer *lb, *tmplb;
-	buffer *b;
-	int palloc_size = 1024;
-	int count;
-	int size;
-
-	lb = list_buffer_last(header);
-	if(lb->b ==	NULL) {
-		lb->b = buffer_create_size(p, palloc_size);
-		memset(lb->b->ptr, 0, 1024);
-	}
-
-	
-	b = lb->b;
-	while(( size = (size_t)read(fd, b->ptr + b->used, (int)(b->size - b->used))) >= 0) {
-		b->used += size;
-		if(size == 0){
-			return 0;
-		}
-		else if((count = find_header_end(b)) >= 0) {
-			//list_buffer_to_lower(header);
-			return 0;
-		}
-		if(b->size == b->used ) {
-			tmplb  = list_buffer_add(p, header);
-			tmplb->b = buffer_create_size(p, palloc_size);
-			adjust_header(lb, tmplb);
-			lb= tmplb;
-			b = lb->b;
-		}
-	}
 
 	return 1;
 }
@@ -78,27 +27,31 @@ static int read_http_header(list_buffer *header, pool_t *p, int fd)
 int read_header(http_connect_t *con)
 {
 	pool_t *p;
-	list_buffer *header;
 
 
 	p =(pool_t *) con->p;
 
-	if(con->in->header == NULL)con->in->header = list_buffer_create(p);
-	header = con->in->header;
+	if(con->in->header == NULL) {
+		con->in->header = buffer_init(p);
+	}
+
 	
-	return read_http_header(header, p, con->fd);
+	return read_http_header(con->in->header , p, con->fd);
 }
 
 int read_cgi(epoll_cgi_t *cgi)
 {
 	pool_t *p; 
-	list_buffer *header;
+	buffer *header;
 	
 	p = cgi->con->p;
-	if(cgi->cgi_data == NULL)cgi->cgi_data = list_buffer_create(p);
+	if(cgi->cgi_data == NULL){
+		cgi->cgi_data = buffer_init(p);
+	}
+
 	header = cgi->cgi_data;
 
-	return read_fd(header, p, cgi->fd);
+	return read_http_header(header, p, cgi->fd);
 	
 }
 
@@ -176,11 +129,11 @@ static void parse_http_uri(struct pool_t *p, request *in, string *rb)
 	end = rb->ptr+rb->len;
 
 	start = skip_space(start, end);
-	if(strncasecmp(start,"get", 3) == 0) {
+	if(strncasecmp(start, "get ", 4) == 0) {
 		in->http_method = _GET;
 		start += 3;
 	}
-	else if(strncasecmp(start, "post", 4) == 0) {
+	else if(strncasecmp(start, "post ", 5) == 0) {
 		in->http_method = _POST;
 		start +=4;
 	}
@@ -243,70 +196,77 @@ static void test_print_header(request *in)
 		printf("none\n");
 	}
 	
-	printf("%s", in->header->b->ptr);
 
 }
 
 void parse_header(http_connect_t * con)
 {
  	struct request *in;
-	struct list_buffer *header;
+	buffer *header;
 	buffer *b;
-	string *dst;
+	string *line;
+	string *k,*v;
 	pool_t *p;
+	
+	char *start, *end;
 	
 
 
 	p = (pool_t *)con->p;
-	dst = (string *)palloc(p, sizeof(string));
+	line = (string *)string_init(p);
+	k = (string *)string_init(p);
+	v = (string *)string_init(p);
 	in = con->in;
 	header = in->header;
-	
-	list_buffer_used_to_zero(header);
-	b = header->b;
-	buffer_get_line(b, dst);
-	parse_http_uri(p, in, dst);
-	
-	while(!buffer_get_word_with_split(b, dst, ':')) {
-		if(dst->ptr == NULL && header->next == NULL) return ;
-		if(dst->ptr == NULL) { header = header->next;b = header->b;continue;}
-		if(strncasecmp("accept-encoding", dst->ptr, dst->len) == 0) {
-			buffer_get_line(b, dst);
-			if(dst->len == 0) {
+
+	start = in->header->ptr;
+	end = in->header->ptr + in->header->used;
+
+	string_get_line(start, end, line);
+
+	//buffer_get_line(header, dst);
+
+	parse_http_uri(p, in, line);
+
+	start = line->ptr + line->len;
+	while(*start == '\r' || *start == '\n' ) {
+		start ++;
+	}
+	while(start < end) {
+		string_get_line(start, end, line);
+		string_split_kv(line, k, v, ':');
+		string_skip_char(k, ' ');
+		string_skip_char(v, ' ');
+		if(k->len == 15 && strncasecmp(k, "accept-encoding", 15) == 0) {
+
+			if(v->len == 0) {
 				in->accept_encoding = _NOCOMPRESS;
 			}
-			else if(strstr(dst->ptr, "gzip") != NULL) {
+			else if(v->len == 4 && strncasecmp(v, "gzip", 4) == 0) {
 				in->accept_encoding = _GZIP;
 			}
-			else if(strstr(dst->ptr, "deflate") != NULL) {
+			else if(v->len == 7 && strncasecmp(v, "deflate", 7) == 0) {
 				in->accept_encoding = _DEFLATE;
 			}
 		}
-		else if(strncasecmp("host", dst->ptr, dst->len) == 0) {
-			buffer_get_line(b, dst);
-			in->host = (string *)palloc(p, sizeof(string));
-			in->host->ptr = dst->ptr;
-			in->host->len = dst->len;
+		else if(k->len == 4 && strncasecmp(k, "host", 4) == 0) {		
+			in->host = v;
 		}
-		else if(strncasecmp("authorization", dst->ptr, dst->len) == 0) {
-			buffer_get_line(b, dst);
-			in->authorization = (string *)palloc(p, sizeof(string));
-			in->authorization->ptr = dst->ptr;
-			in->authorization->len = dst->len;
+		else if(k->len == 13 && strncasecmp(k, "authorization", 13) == 0) {
+			in->authorization = v;
 			decoded_usr_pwd(con);
 		}
-		else if(strncasecmp("content-length",dst->ptr, dst->len) == 0) {
-			buffer_get_line(b, dst);
-			in->content_length = (string *)pcalloc(p, sizeof(string));
-			in->content_length->ptr = dst->ptr;
-			in->content_length->len = dst->len;
+		else if(k->len == 14 && strncasecmp(k, "content-length", 14) == 0) {
+			in->content_length = v;
+		}
 
+		start = line->ptr + line->len;
+		while(*start == '\r' || *start == '\n' ) {
+			start ++;
 		}
-		else {
-			buffer_get_line(b, dst);
-			
-		}
+
 	}
+
 
 	//test_print_header(in);
 	return ;

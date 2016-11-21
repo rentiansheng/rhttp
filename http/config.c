@@ -27,7 +27,7 @@ int get_name_value(char **name_ptr, char **value_ptr, char *line ) {
 	value = split;
 	while(*value == ' ') value++;
 	end = split+strlen(split) - 1;
-	while(*end-- == ' ' && end >=value)end --;
+	while(*end == ' ' && end >=value)end --;
 	if(end < value) return 15;//配置节点的名字不能为空
 	*(end+1) = 0;
 
@@ -186,7 +186,7 @@ int set_web(FILE *f, http_conf_t *conf, int *row)
 		value = split;
 		while(*value == ' ') value++;
 		end = split+strlen(split) - 1;
-		while(*end-- == ' ' && end >=value)end --;
+		while(*end == ' ' && end >=value)end --;
 		if(end < value) return 15;//配置节点的名字不能为空
 		*(end+1) = 0;
 		

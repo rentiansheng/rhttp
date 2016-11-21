@@ -10,7 +10,7 @@
 #include "pool.h"
 #include "str.h"
 
-#define BUFFER_PIECE_SIZE 64/*Allocate memory base*/
+#define BUFFER_PIECE_SIZE 8/*Allocate memory base*/
 #define BUFFER_ARRAY_SIZE 16/**/
 
 typedef struct {
@@ -38,6 +38,12 @@ buffer * buffer_init(pool_t *p);
 
 buffer * buffer_create_size(pool_t *p, size_t len);
 
+void buffer_append_char(buffer *b, char c, pool_t *p);
+
+void buffer_append_str(buffer *b, char *str, int len, pool_t *p);
+
+void buffer_append_n_str(buffer *b, char *str, int len, pool_t *p);
+
 int buffer_get_word_with_split(buffer *src, string *dst, char split);
 
 int  buffer_get_line(buffer *src, string *dst);
@@ -59,7 +65,7 @@ void buffer_find_str(buffer *src, buffer *dst, char *str);
 
 void buffer_n_to_lower(buffer *src, int n);
 
-int buffer_prepare_int(pool_t *p, buffer *b, size_t size);
+int buffer_append_prepare(pool_t *p, buffer *b, size_t size);
 
 int buffer_to_lower(buffer *b);
 
@@ -75,6 +81,6 @@ int buffer_caseless_compare_len(buffer *a, buffer *b);
 
 int buffer_path_simplify(buffer *dest, const buffer *src);
 
-
+int buffer_append_connent(pool_t *p, buffer *dst, const char *b, size_t len);
 
 #endif

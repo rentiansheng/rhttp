@@ -94,7 +94,15 @@ http_send_body(http_connect_t *con)
 	if(lstat(con->out->physical_path->ptr+1, &sf) == 0 ) {
 		int fd  = open(con->out->physical_path->ptr+1,  O_RDONLY);
 		void *start = mmap(NULL, sf.st_size, PROT_READ, MAP_SHARED, fd, 0);
-		write(con->fd, start, sf.st_size);
+		int len = sf.st_size;
+		int count = 0;
+		while(len > 0  && (count = write(con->fd, start, len))) {
+			if(count > 0 ) {
+				start += count;
+				len -= count;
+			}
+		
+		}
 
 		munmap(start, sf.st_size);
 		close(fd);

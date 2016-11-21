@@ -28,13 +28,19 @@ int file_handle(http_conf_t *conf, http_connect_t *con)
 		while(k != NULL) {
 
 			//if(len == strlen(k->name+1) && strncmp(p, k->name+1, len) == 0) {
-			if(string_compare_str(k->name, p)) {
+			if(string_compare_str(k->name, p) == 0) {
 				con->out->content_type = buffer_init(con->p);
-				con->out->content_type->ptr = k->value;
-				con->out->content_type->size = con->out->content_type->size = strlen(k->value);
+				string * value = (string *)k->value;
+				con->out->content_type->ptr = value->ptr;
+				con->out->content_type->size = con->out->content_type->size = value->len;
 				break;
 			}
 			k = k->next;
+
+		}
+		if(con->out->content_type == NULL ) {
+			con->out->content_type = buffer_init(con->p);
+			buffer_append_str(con->out->content_type, "text/plain", 10, con->p);
 
 		}
 				
@@ -87,6 +93,7 @@ int autoindex_handle(http_conf_t *conf, http_connect_t *con)
 
 				uri->used += strlen(uri->ptr);*/
 				buffer_append_connent(con->p, uri ,index->ptr, index->len);
+				out->status_code = 200;
 				out->physical_path = uri;
 				chdir(web->root);
 

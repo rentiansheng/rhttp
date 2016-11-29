@@ -215,7 +215,7 @@ start_accept(http_conf_t *conf)
 		
 		for(evIndex = 0; evIndex < count; evIndex++) {
 			evfd = ev + evIndex;
-			epoll_data = (epoll_data_t *)evfd->data.ptr;
+			epoll_data = (epoll_extra_data_t *)evfd->data.ptr;
 			if(epoll_data->type  != SERVERFD && (evfd->events & EPOLLIN)) {
 				http_connect_t * con;
 				

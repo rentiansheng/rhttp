@@ -19,6 +19,7 @@ int authorized_handle(http_conf_t *conf, http_connect_t *con)
 
 
 	if(usr == NULL && pwd == NULL) {
+		
 		con->next_handle = autoindex_handle;
 		return 0;
 	} else if(con->in->user != NULL  &&  con->in->pwd != NULL) {

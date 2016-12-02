@@ -224,13 +224,12 @@ void parse_header(http_connect_t * con)
 
 	string_get_line(start, end, line);
 
-	//buffer_get_line(header, dst);
 
 	parse_http_uri(p, in, line);
-
+ 
 	start = line->ptr + line->len;
 	while(*start == '\r' || *start == '\n' ) {
-		start ++;
+		start ++; 
 	}
 	while(start < end) {
 		string_get_line(start, end, line);

@@ -9,7 +9,6 @@ send_unauthorized(int fd)
 	if(_Server != NULL)	sprintf(msg, "%sServer: %s\r\n", msg, _Server);
 	sprintf(msg, "%sWWW-Authenticate: Basic realm=\"%s\"\r\n\r\n<html><body>auth error</body><html>", msg, _Auth_desc);
 	
-	
 	return write(fd, msg, strlen(msg));
 }
 

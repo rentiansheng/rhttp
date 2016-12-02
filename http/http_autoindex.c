@@ -92,7 +92,8 @@ int autoindex_handle(http_conf_t *conf, http_connect_t *con)
 				/*strcat(uri->ptr, index);
 
 				uri->used += strlen(uri->ptr);*/
-				buffer_append_connent(con->p, uri ,index->ptr, index->len);
+				//将字符串结束标记拷贝进去
+				buffer_append_connent(con->p, uri ,index->ptr, index->len+1);
 				out->status_code = 200;
 				out->physical_path = uri;
 				chdir(web->root);

@@ -11,24 +11,22 @@ virtual_port_match(http_conf_t *conf, http_connect_t *con)
 
 
 	con->web = NULL;
-	rbport = (string *)palloc(con->p, sizeof(string));
-	host = con->in->host;
+	rbport = string_init(conf->p);
+	host = string_init(conf->p);
 	web = conf->web;
 	//一下是为了支持多个端口绑定
-	string_get_line_split(host, rbport, ':');
+	string_split_kv(con->in->host, host, rbport, ':');
 
 	if(rbport != NULL && rbport->len > 0 && rbport->ptr != NULL){
 		port = atoi(rbport->ptr);
 	}
 
-	con->web = web;
+
+
 
 	  while(web != NULL) {
-		  if(web->server == NULL) {
-			  con->web = web;
-		  }
-		  else if(string_compare_str(host, web->server) == 0) {
-			  con->web = web;
+		  con->web = web;
+		 if(string_compare(host, web->name) == 0) {
 			  return;
 		  }
 		  /*下面用于多端口绑定的

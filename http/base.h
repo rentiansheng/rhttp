@@ -94,7 +94,7 @@ typedef struct web_conf {
 	string *root;
 	string *index_file;
 	string *err404;
-	string *server;
+	string *name;
 	string *auth_usr;
 	string *auth_pwd;
 	int fd;

@@ -249,14 +249,14 @@ void parse_header(http_connect_t * con)
 			}
 		}
 		else if(k->len == 4 && strncasecmp(k->ptr, "host", 4) == 0) {		
-			in->host = v;
+			in->host = string_init_from_ptr(p, v->ptr, v->len);
 		}
 		else if(k->len == 13 && strncasecmp(k->ptr, "authorization", 13) == 0) {
-			in->authorization = v;
+			in->authorization = string_init_from_ptr(p, v->ptr, v->len);
 			decoded_usr_pwd(con);
 		}
 		else if(k->len == 14 && strncasecmp(k->ptr, "content-length", 14) == 0) {
-			in->content_length = v;
+			in->content_length = string_init_from_ptr(p, v->ptr, v->len);
 		}
 
 		start = line->ptr + line->len;

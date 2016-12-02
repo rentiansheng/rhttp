@@ -167,7 +167,7 @@ int set_web(FILE *f, http_conf_t *conf, int *row)
 	web->fd = 0;
 	web->index_file = NULL;
 	web->root = NULL;
-	web->server = NULL;
+	web->name = NULL;
 	web->auth_pwd = NULL;
 	web->auth_usr = NULL;
 	while(!read_line(f, line, row)){
@@ -199,6 +199,9 @@ int set_web(FILE *f, http_conf_t *conf, int *row)
 							
 		}else if(raw_str_ncmp("404_page", name, 8) == 0) {
 			web->err404 = string_init_from_str(conf->p, value, strlen(value));
+		}else if(raw_str_ncmp("name", name, 4) == 0) {
+			web->name = string_init_from_str(conf->p, value, strlen(value));
+
 		} else if(raw_str_ncmp("auth", name, 4) == 0) {
 		
 			char *usr , *pwd;

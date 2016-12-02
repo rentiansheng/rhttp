@@ -237,26 +237,26 @@ void parse_header(http_connect_t * con)
 		string_split_kv(line, k, v, ':');
 		string_skip_char(k, ' ');
 		string_skip_char(v, ' ');
-		if(k->len == 15 && strncasecmp(k, "accept-encoding", 15) == 0) {
+		if(k->len == 15 && strncasecmp(k->ptr, "accept-encoding", 15) == 0) {
 
 			if(v->len == 0) {
 				in->accept_encoding = _NOCOMPRESS;
 			}
-			else if(v->len == 4 && strncasecmp(v, "gzip", 4) == 0) {
+			else if(v->len == 4 && strncasecmp(v->ptr, "gzip", 4) == 0) {
 				in->accept_encoding = _GZIP;
 			}
-			else if(v->len == 7 && strncasecmp(v, "deflate", 7) == 0) {
+			else if(v->len == 7 && strncasecmp(v->ptr, "deflate", 7) == 0) {
 				in->accept_encoding = _DEFLATE;
 			}
 		}
-		else if(k->len == 4 && strncasecmp(k, "host", 4) == 0) {		
+		else if(k->len == 4 && strncasecmp(k->ptr, "host", 4) == 0) {		
 			in->host = v;
 		}
-		else if(k->len == 13 && strncasecmp(k, "authorization", 13) == 0) {
+		else if(k->len == 13 && strncasecmp(k->ptr, "authorization", 13) == 0) {
 			in->authorization = v;
 			decoded_usr_pwd(con);
 		}
-		else if(k->len == 14 && strncasecmp(k, "content-length", 14) == 0) {
+		else if(k->len == 14 && strncasecmp(k->ptr, "content-length", 14) == 0) {
 			in->content_length = v;
 		}
 

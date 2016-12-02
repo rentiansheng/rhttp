@@ -2,7 +2,7 @@
 
 char is_char(int c)
 {
-	if( ('Z' >= c && 'A' <= c) || ('z' >= c && 'a' <= c))
+	if( ('Z' >= c && 'A' <= c) || ('z' >= c && 'a' <= c) || ('0' <= c && '9' >= c))
 		return 1;
 	return 0;
 }
@@ -80,7 +80,9 @@ int parse_line(FILE *f, char *line,int  *row, http_conf_t *conf)
 	name = split = strchr(line, '=');
 	if(split == NULL) return 2;//配置文件错误
 	
-	while(!is_char(*name)) name++;
+	while(!is_char(*name) && *name != 0) {
+		name++;
+	}
 
 
 	if(strncmp(line, "port", 4) == 0){
@@ -97,7 +99,7 @@ int parse_line(FILE *f, char *line,int  *row, http_conf_t *conf)
 		char *usr, *pwd;
 		get_name_value(&usr, &pwd, name);
 
-		conf->auth_pwd = string_init_from_str(conf->p, usr, strlen(usr));
+		conf->auth_usr = string_init_from_str(conf->p, usr, strlen(usr));
 		conf->auth_pwd = string_init_from_str(conf->p, pwd, strlen(pwd));
 
 	}else {
@@ -202,8 +204,8 @@ int set_web(FILE *f, http_conf_t *conf, int *row)
 			char *usr , *pwd;
 			get_name_value(&usr, &pwd, value);
 
-			conf->auth_pwd = string_init_from_str(conf->p, usr, strlen(usr));
-			conf->auth_pwd = string_init_from_str(conf->p, pwd, strlen(pwd));
+			web->auth_usr = string_init_from_str(conf->p, usr, strlen(usr));
+			web->auth_pwd = string_init_from_str(conf->p, pwd, strlen(pwd));
 		}else {
 			return 14;//不能识别的配置节点
 		}

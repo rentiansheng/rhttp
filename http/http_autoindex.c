@@ -8,12 +8,11 @@
 
 
 
-int 
-file_handle(http_conf *g, http_connect_t *con)
+int file_handle(http_conf_t *conf, http_connect_t *con)
 {
 	char *p;
 	int len = 0 ;
-	key *k;
+	rkey_t *k;
 
 	p = strchr(con->out->physical_path->ptr, '.');
 	if(p != NULL) {
@@ -24,17 +23,24 @@ file_handle(http_conf *g, http_connect_t *con)
 			con->next_handle = cgi_handle;
 			return 0;
 		}
-		k = g->mimetype;		
+		k = conf->mimetype;		
 
 		while(k != NULL) {
 
-			if(len == strlen(k->name+1) && strncmp(p, k->name+1, len) == 0) {
+			//if(len == strlen(k->name+1) && strncmp(p, k->name+1, len) == 0) {
+			if(string_compare_str(k->name, p) == 0) {
 				con->out->content_type = buffer_init(con->p);
-				con->out->content_type->ptr = k->value;
-				con->out->content_type->size = con->out->content_type->size = strlen(k->value);
+				string * value = (string *)k->value;
+				con->out->content_type->ptr = value->ptr;
+				con->out->content_type->size = con->out->content_type->size = value->len;
 				break;
 			}
 			k = k->next;
+
+		}
+		if(con->out->content_type == NULL ) {
+			con->out->content_type = buffer_init(con->p);
+			buffer_append_str(con->out->content_type, "text/plain", 10, con->p);
 
 		}
 				
@@ -45,12 +51,11 @@ file_handle(http_conf *g, http_connect_t *con)
 	return 0;
 }
 
-int
-autoindex_handle(http_conf *g, http_connect_t *con)
+int autoindex_handle(http_conf_t *conf, http_connect_t *con)
 {
 	request * in;
 	response *out;
-	web_conf *web;
+	web_conf_t *web;
 	buffer *uri, *tmp;
 	struct stat buf;
 	int path_len;
@@ -58,56 +63,58 @@ autoindex_handle(http_conf *g, http_connect_t *con)
 	in = con->in;
 	out = con->out;
 	web = con->web;
-	path_len = in->uri->size + 1;
-	uri = buffer_create_size(con->p, path_len + AUTOPAGELEN);
+	path_len = in->uri->len + 1;
+	uri = buffer_create_size(con->p, path_len);
 
 	memset(uri->ptr, 0, path_len);
-	uri->used = in->uri->size;
+	uri->used = in->uri->len;
 	strncpy(uri->ptr, in->uri->ptr, path_len-1);
 
 	buffer_path_simplify(uri, uri);
 
 
 	con->next_handle = http_send;
-	if(chdir(web->root) == 0 ) {
+	if(chdir(web->root->ptr) == 0 ) {
 		if(strlen(uri->ptr)>1 && stat(uri->ptr+1, &buf) != 0 ) {
 			out->status_code = HTTP_NOT_FOUND;
 			return 0;
 		}
 		
 		if(uri->used ==  1 || S_ISDIR(buf.st_mode)) {
-			int i;
-			char *index;
-			if(strlen(uri->ptr)> 1)chdir(uri->ptr+1);
-			index = web->index_file;
-			for(i = 0; i < web->index_count; i++) {
-				if(access(index, F_OK) == 0 || access(index, R_OK) == 0) {
-					strcat(uri->ptr, index);
-					uri->used += strlen(uri->ptr);
-					out->physical_path = uri;
-		 			break;
+			if(strlen(uri->ptr)> 1) {
+				if(chdir(uri->ptr+1)) {
+					out->status_code = HTTP_NOT_FOUND;
+					return 0;
 				}
-		 		index = index + strlen(index);
 			}
-			chdir(web->root);
+			string * index = web->index_file;
+			if(access(index->ptr, F_OK) == 0 ) {
+				/*strcat(uri->ptr, index);
 
-			if( i == web->index_count) {
+				uri->used += strlen(uri->ptr);*/
+				//将字符串结束标记拷贝进去
+				buffer_append_connent(con->p, uri ,index->ptr, index->len+1);
+				out->status_code = 200;
+				out->physical_path = uri;
+				chdir(web->root);
+
+			} else {
 				out->status_code = HTTP_NOT_FOUND;
-				return 1;
-		 	}
-		}
-		else if(S_ISREG(buf.st_mode)) {
+				return 0;
+			}
+
+			
+			
+		}else if(S_ISREG(buf.st_mode)) {
 			if(access(uri->ptr+1,F_OK|R_OK) == 0) {
 				out->physical_path = uri;
-			}
+			}else {
+				out->status_code = HTTP_NOT_FOUND;
+				return 0;
+			}  
 			
 		}
-		else {
-			out->status_code = HTTP_NOT_FOUND;
-			return 0;
-		}  
-	}
-	else {
+	}else {
 		out->status_code = HTTP_NOT_FOUND;
 		
 		return  0;

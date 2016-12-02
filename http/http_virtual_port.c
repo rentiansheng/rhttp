@@ -2,33 +2,31 @@
 
 
 void 
-virtual_port_match(http_conf *g, http_connect_t *con)
+virtual_port_match(http_conf_t *conf, http_connect_t *con)
 {
 	int port ;
-	read_buffer *rbport;
-	read_buffer *host;
-	web_conf *web;
+	string *rbport;
+	string *host;
+	web_conf_t *web;
 
 
 	con->web = NULL;
-	rbport = (read_buffer *)palloc(con->p, sizeof(read_buffer));
-	host = con->in->host;
-	web = g->web;
+	rbport = string_init(conf->p);
+	host = string_init(conf->p);
+	web = conf->web;
 	//一下是为了支持多个端口绑定
-	read_buffer_get_line_split(host, rbport, ':');
+	string_split_kv(con->in->host, host, rbport, ':');
 
-	if(rbport != NULL && rbport->size > 0 && rbport->ptr != NULL){
+	if(rbport != NULL && rbport->len > 0 && rbport->ptr != NULL){
 		port = atoi(rbport->ptr);
 	}
 
-	con->web = web;
+
+
 
 	  while(web != NULL) {
-		  if(web->server == NULL) {
-			  con->web = web;
-		  }
-		  else if(read_buffer_compare_str(host, web->server) == 0) {
-			  con->web = web;
+		  con->web = web;
+		 if(string_compare(host, web->name) == 0) {
 			  return;
 		  }
 		  /*下面用于多端口绑定的

@@ -9,18 +9,21 @@
 #include <string.h>
 #include "buffer.h"
 #include "pool.h"
-#include "http_mod_connect.h"
+#include "str.h"
+#include "hash.h"
 
-#define OK 0
+
+
 #define FILE_NO_EXIST 1
 #define FILE_NO_ACCESS 2
+
+#define OK 0
+#define CONTINUE 1
 #define CANCEL 3
 #define DONE 4
+
 #define MEMERROR -1
 #define UNDEFINED   -144
-
-#define MAX_CONNECT 10000
-#define MAX_EVENT 800
 
 
 #define HTTP_OK 200
@@ -33,6 +36,13 @@
 #define HTTP_BAD_GATEWAY 502
 #define HTTP_UNDEFINED 544
 
+
+#define MAX_CONNECT 10000
+#define EPOLL_W 1
+#define EPOLL_R 2
+#define SERVERFD 1
+#define SOCKFD 2
+#define CGIFD 3
 
 typedef enum{
 	_GET,
@@ -62,41 +72,48 @@ typedef enum {
 	t_int,
 	t_uint,
 	t_long,
+	t_string,
 }value_type;
 
-typedef struct key {
-	char *name;
-	char *value;
+typedef struct rkey {
+	string *name;
+	void *value;
 	value_type type;
-	struct key *next;
-}key;
+	struct rkey_t *next;
+}rkey_t;
 
 
 typedef struct fileinfo {
-	read_buffer * name;
+	string * name;
 	size_t len;
 	int fd;
 	void *start;
 }fileinfo_t;
 
 typedef struct web_conf {
-	char *root;
-	char *index_file;
-	int index_count;
-	char *err404;
-	char *server;
+	string *root;
+	string *index_file;
+	string *err404;
+	string *name;
+	string *auth_usr;
+	string *auth_pwd;
 	int fd;
 	struct web_conf *next;
-}web_conf;
+}web_conf_t;
+
+
 
 typedef struct http_conf {
 	int web_count;
 	int port;
 	int epfd;
 	int fd;
-	key *mimetype;
-	web_conf *web;
-}http_conf;
+	pool_t *p;
+	string *auth_usr;
+	string *auth_pwd;
+	rkey_t *mimetype;
+	web_conf_t *web;
+}http_conf_t;
 
 
 
@@ -113,19 +130,19 @@ typedef struct response{
 }response;
 
 typedef struct request{
-	read_buffer * uri;
-	read_buffer * host;
-	read_buffer *args;
+	string * uri;
+	string * host;
+	string *args;
 
 	
-	read_buffer * authorization;
-	read_buffer * user;
-	read_buffer * pwd;
+	string * authorization;
+	string * user;
+	string * pwd;
 	http_method_t http_method;
-	read_buffer * http_version;
+	string * http_version;
 	COMPRESS_TYPE accept_encoding;	
-	read_buffer * content_length;
-	struct list_buffer *header;
+	string * content_length;
+	buffer *header;
 
 }request;
 
@@ -136,7 +153,7 @@ typedef struct http_connect{
 	struct web_conf *web;
 	struct pool_t *p;
 	int fd;
-	int (*next_handle)(http_conf *g, struct  http_connect *con);
+	int (*next_handle)(http_conf_t *g, struct  http_connect *con);
 }http_connect_t;
 
 
@@ -150,15 +167,14 @@ typedef struct cgi_ev {
 	int count;
 	int stdin;
 	int stdout;
-	
 
 }cgi_ev_t;
 
 typedef struct epoll_cgi {
 	http_connect_t *con;
 	int fd;
-	struct list_buffer *cgi_data;
-	list_buffer *out;
+	buffer *cgi_data;
+	buffer *out;
 	
 	
 }epoll_cgi_t;
@@ -166,7 +182,7 @@ typedef struct epoll_cgi {
 
 #define _Server "Rhttp" 
 #define _Auth_desc "Rhttp test" 
-#define _Version "0.2.0" 
+#define _Version "0.3.0" 
 #define DS_LINEEND "\x0a"
 
 

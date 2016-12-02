@@ -5,25 +5,7 @@
 #include "http_deamon.h"
 
 
-int socket_listen_test(char *ip, unsigned short int port)  {
-	int res_socket;
-	int res, on;
-	struct sockaddr_in address;
-	//struct in_addr in_ip;
-	
-	on = 1;
-	res = res_socket = socket(AF_INET, SOCK_STREAM, 0);
-	res = setsockopt(res_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
-	memset(&address, 0, sizeof(address));
-	address.sin_family = AF_INET;
-	address.sin_port = htons(port);
-	address.sin_addr.s_addr = htonl(INADDR_ANY);
-	
-	res = bind(res_socket, (struct sockaddr *)&address, sizeof(address));
-	if(res) {printf("port is used, not to repear bind %s\n", strerror(errno)); return -1;}
 
-	return 0;
-}
 
 static 
 int http_init_daemon(struct http_conf * conf) 
@@ -69,7 +51,7 @@ int http_init_daemon(struct http_conf * conf)
 }
 
 
-static http_init_children(struct http_conf * conf) 
+static http_init_children(http_conf_t * conf) 
 {
     int pid = 0;//0标识运行accept和cgi， 1 标识只允许faccept, 2fork cgi进程
 
@@ -89,7 +71,7 @@ static http_init_children(struct http_conf * conf)
 }
 
 
-int http_daemon(struct http_conf * conf)
+int http_daemon(http_conf_t * conf)
 {  
     int uid = getuid();
     int gid = getgid();

@@ -19,11 +19,13 @@
 #include "http_send_page.h"
 #include "http_send_html.h"
 #include "http_autoindex.h"
+#include "linux_epoll.h"
+#include "http_request_header.h"
 
 
 
 
-int start_accept(struct http_conf *g);
+int start_accept(http_conf_t *conf);
 
 response * response_init(pool_t *p);
 request * request_init(pool_t *p);

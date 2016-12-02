@@ -16,12 +16,13 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include "http_mod_connect.h"
 
 
 
 #include "base.h"
 
-int http_daemon(http_conf * conf);
+int http_daemon(http_conf_t * conf);
 
 
 #endif

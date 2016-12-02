@@ -4,12 +4,12 @@ int
 produce_http_header(http_connect_t *con) 
 {
 	char *ptr;
-	read_buffer *rb; 
+	string *rb; 
 	response *out = con->out;
 
-	rb= palloc(con->p, sizeof(read_buffer));
+	rb= palloc(con->p, sizeof(string));
 	ptr = rb->ptr = palloc(con->p, 1024);
-	rb->size = 1024;
+	rb->len = 1024;
 
 	sprintf(ptr, "HTTP/1.1 %d", out->status_code);
 	switch(out->status_code) {
@@ -94,7 +94,15 @@ http_send_body(http_connect_t *con)
 	if(lstat(con->out->physical_path->ptr+1, &sf) == 0 ) {
 		int fd  = open(con->out->physical_path->ptr+1,  O_RDONLY);
 		void *start = mmap(NULL, sf.st_size, PROT_READ, MAP_SHARED, fd, 0);
-		write(con->fd, start, sf.st_size);
+		int len = sf.st_size;
+		int count = 0;
+		while(len > 0  && (count = write(con->fd, start, len))) {
+			if(count > 0 ) {
+				start += count;
+				len -= count;
+			}
+		
+		}
 
 		munmap(start, sf.st_size);
 		close(fd);
@@ -106,7 +114,7 @@ http_send_body(http_connect_t *con)
 }
 
 int 
-http_send(http_conf *g, http_connect_t *con)
+http_send(http_conf_t *conf, http_connect_t *con)
 {
 	if(con->out->status_code == HTTP_UNAUTHORIZED) {
 		send_unauthorized(con->fd);

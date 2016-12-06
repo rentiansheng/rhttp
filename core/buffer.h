@@ -48,6 +48,9 @@ int buffer_get_word_with_split(buffer *src, string *dst, char split);
 
 int  buffer_get_line(buffer *src, string *dst);
 
+int buffer_add_prefix(pool_t *p, buffer *b, char *ptr, size_t len);
+
+
 void buffer_clear(buffer *b);
 
 list_buffer * list_buffer_create(pool_t *p);
@@ -81,6 +84,12 @@ int buffer_caseless_compare_len(buffer *a, buffer *b);
 
 int buffer_path_simplify(buffer *dest, const buffer *src);
 
-int buffer_append_connent(pool_t *p, buffer *dst, const char *b, size_t len);
+int buffer_append_context(pool_t *p, buffer *dst, const char *b, size_t len);
+
+int buffer_add_str_end(pool_t *p, buffer *b) ;
+
+
+static int buffer_prepare(pool_t *p, buffer * b, size_t size);
+
 
 #endif

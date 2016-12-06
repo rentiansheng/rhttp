@@ -63,40 +63,56 @@ int autoindex_handle(http_conf_t *conf, http_connect_t *con)
 	in = con->in;
 	out = con->out;
 	web = con->web;
-	path_len = in->uri->len + 1;
-	uri = buffer_create_size(con->p, path_len);
 
-	memset(uri->ptr, 0, path_len);
+	uri = buffer_init(con->p);
+	
+
+	/*memset(uri->ptr, 0, path_len);
 	uri->used = in->uri->len;
-	strncpy(uri->ptr, in->uri->ptr, path_len-1);
+	strncpy(uri->ptr, in->uri->ptr, path_len-1);*/
+	buffer_append_str(uri, in->uri->ptr, in->uri->len, con->p);
+	buffer_add_str_end(con->p, uri);
+
 
 	buffer_path_simplify(uri, uri);
 
+	buffer_add_prefix(con->p, uri, web->root->ptr, web->root->len);//len+1，+1用来存字符串结束标识
+	buffer_add_str_end(con->p, uri);
+	//添加行结束标记
+
+	
+
 
 	con->next_handle = http_send;
-	if(chdir(web->root->ptr) == 0 ) {
-		if(strlen(uri->ptr)>1 && stat(uri->ptr+1, &buf) != 0 ) {
+
+	int strUriLen = uri->used;
+
+	
+	//if(chdir(web->root->ptr) == 0 ) {
+	if(access(uri->ptr,F_OK|R_OK) == 0) {
+		if(stat(uri->ptr, &buf) != 0 ) {
 			out->status_code = HTTP_NOT_FOUND;
 			return 0;
 		}
 		
-		if(uri->used ==  1 || S_ISDIR(buf.st_mode)) {
-			if(strlen(uri->ptr)> 1) {
-				if(chdir(uri->ptr+1)) {
-					out->status_code = HTTP_NOT_FOUND;
-					return 0;
-				}
-			}
+		if(S_ISDIR(buf.st_mode)) {
+		
 			string * index = web->index_file;
-			if(access(index->ptr, F_OK) == 0 ) {
+			//添加文件分割符号/，
+			if(uri->ptr[uri->used-1] != '/') {
+				buffer_append_char(uri, '/', con->p);
+			}
+			buffer_append_context(con->p, uri, index->ptr, index->len);
+			//buffer->size 有问题， used=15， size=30 不是2的幂
+			buffer_add_str_end(con->p, uri);
+			if(access(uri->ptr, F_OK) == 0 ) {
 				/*strcat(uri->ptr, index);
 
 				uri->used += strlen(uri->ptr);*/
-				//将字符串结束标记拷贝进去
-				buffer_append_connent(con->p, uri ,index->ptr, index->len+1);
+				
+				//buffer_append_context(con->p, uri ,index->ptr, index->len+1);
 				out->status_code = 200;
 				out->physical_path = uri;
-				chdir(web->root);
 
 			} else {
 				out->status_code = HTTP_NOT_FOUND;
@@ -106,13 +122,7 @@ int autoindex_handle(http_conf_t *conf, http_connect_t *con)
 			
 			
 		}else if(S_ISREG(buf.st_mode)) {
-			if(access(uri->ptr+1,F_OK|R_OK) == 0) {
-				out->physical_path = uri;
-			}else {
-				out->status_code = HTTP_NOT_FOUND;
-				return 0;
-			}  
-			
+			out->physical_path = uri;
 		}
 	}else {
 		out->status_code = HTTP_NOT_FOUND;

@@ -47,6 +47,14 @@ void buffer_append_char(buffer *b, char c, pool_t *p)
 
 }
 
+//添加字符串结束标记
+int buffer_add_str_end(pool_t *p, buffer *b) {
+	buffer_prepare(p, b, 1);
+
+	b->ptr[b->used] = 0;
+	return 0;
+}
+
 void buffer_append_str(buffer *b, char *str, int len, pool_t *p)
 {
 	buffer_prepare_int(p, b, b->used+len);
@@ -56,7 +64,7 @@ void buffer_append_str(buffer *b, char *str, int len, pool_t *p)
 
 void buffer_append_n_str(buffer *b, char *str, int len, pool_t *p)
 {
-	buffer_prepare_int(p, b, b->used+len);
+	buffer_prepare(p, b, len);
 	strncat(b->ptr, str, len);
 	b->used += len;
 }
@@ -118,6 +126,26 @@ void  buffer_clear(buffer *b)
 	free(b->ptr);
 	b->size = 0;
 	b->used = 0;
+}
+
+int buffer_add_prefix(pool_t *p, buffer *b, char *ptr, size_t len) {
+	buffer_prepare(p, b, len);
+	int i = 0;
+	char *oldEnd = b->ptr+ b->used - 1;
+	char *newEnd = oldEnd + len;
+
+	for(;i<b->used;i++) {
+		*newEnd = *oldEnd;
+		newEnd--;
+		oldEnd--;
+	}
+	
+	memcpy(b->ptr, ptr, len);
+
+	b->used += len;
+
+	return 0;
+
 }
 
 list_buffer *list_buffer_create(pool_t *p)
@@ -218,6 +246,16 @@ int buffer_prepare_int(pool_t *p, buffer * b, size_t size)
 
 	return 0;
 }
+
+//新加内容的长度
+static int buffer_prepare(pool_t *p, buffer * b, size_t size){
+	if(b->size < (b->used + size)) {
+		buffer_prepare_int(p, b, (b->size)<<1);
+	}
+
+	return 0;
+}
+
 
 
 int buffer_to_lower(buffer *b)
@@ -371,8 +409,8 @@ int buffer_path_simplify(buffer *dest, const buffer *src)
 }
 
 
-int buffer_append_connent(pool_t *p, buffer *dst, const char *b, size_t len) {
-	buffer_prepare_int(p, dst, dst->used+len+1);
+int buffer_append_context(pool_t *p, buffer *dst, const char *b, size_t len) {
+	buffer_prepare_int(p, dst, dst->used+len);
 
 	memcpy(dst->ptr+dst->used, b, len*sizeof(char));
 

@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) Reage
+ * BLOG: http://www.ireage.com
+ * desc:
+ */
 #ifndef _HTTP_VIRTUAL_PORT_H_
 #define _HTTP_VIRTUAL_PORT_H_
 #include "buffer.h"

@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) Reage
+ * BLOG: http://www.ireage.com
+ */
+
  #ifndef _HTTP_HEADER_H_
  #define _HTTP_HEADER_H_
 

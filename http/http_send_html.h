@@ -1,6 +1,6 @@
 /*
  * Copyright (C) Reage
- * blog:http://www.rhttp.cn
+ * BLOG: http://www.ireage.com
  */
 #ifndef _HTTP_SEND_HTML_H_INCLUDE
 #define _HTTP_SEND_HTML_H_INCLUDE

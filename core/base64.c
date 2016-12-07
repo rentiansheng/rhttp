@@ -1,6 +1,6 @@
 /*
  *Copyright (c) Reage
- *blog:http:www.rhttp.cn
+ *blog:http:www.ireage.com
  */
 
 #include "base64.h"
@@ -9,8 +9,7 @@
 static int encode_base64(const string *src, buffer *dst);
 static int decode_base64(const string *src, buffer *dst);
 
-int
-read_buffer_move_word(string * b, char *word)
+int read_buffer_move_word(string * b, char *word)
 {
 	int len = strlen(word);
 	if(strncasecmp(b->ptr, word, len) == 0) {
@@ -28,8 +27,7 @@ read_buffer_move_word(string * b, char *word)
 	return 1;
 }
 
-int 
-decoded_usr_pwd(http_connect_t *con)
+int decoded_usr_pwd(http_connect_t *con)
 {
 	pool_t *p;
 	buffer *dst;
@@ -62,8 +60,7 @@ decoded_usr_pwd(http_connect_t *con)
 }
 
 
-static int 
-decode_base64(const string  *rbsrc, buffer *bdst)
+static int decode_base64(const string  *rbsrc, buffer *bdst)
 {
 	static char base64char[] ={
 		-1 , -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -122,8 +119,7 @@ decode_base64(const string  *rbsrc, buffer *bdst)
 } 
 
 
-static int 
-encode_base64(const string *bsrc, buffer *bdst)
+static int encode_base64(const string *bsrc, buffer *bdst)
 {
 	char *src = bsrc->ptr;
 	size_t len = strlen(src); 

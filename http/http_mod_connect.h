@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) Reage
+ * BLOG: http://www.ireage.com
+ */
+
 #ifndef _HTTP_MOD_CONNECT_H_
 #define _HTTP_MOD_CONNECT_H_
 #include <stdio.h>

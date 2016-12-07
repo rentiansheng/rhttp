@@ -1,8 +1,7 @@
 #include "so_dlfcn.h"
 
 
-void
-get_function(so_t *so)
+void get_function(so_t *so)
 {
 	so->dp = dlopen(so->path, RTLD_LAZY);
 
@@ -11,8 +10,7 @@ get_function(so_t *so)
 	so->f = dlsym(so->dp, so->function);
 }
 
-void 
-close_so(so_t *so)
+void close_so(so_t *so)
 {
 	dlclose(so->dp);
 }

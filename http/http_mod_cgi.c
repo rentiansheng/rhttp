@@ -3,8 +3,7 @@
 /**
 *add system environ 
 */
-void 
-add_sys_envp(pool_t *p, cgi_ev_t * cgiev) 
+void add_sys_envp(pool_t *p, cgi_ev_t * cgiev) 
 {
 	char ** env = environ;
 	while(*env ){
@@ -13,8 +12,7 @@ add_sys_envp(pool_t *p, cgi_ev_t * cgiev)
 }
 
 
-void
-add_envp(pool_t *p, cgi_ev_t * cgiev, char *left, char *right)
+void add_envp(pool_t *p, cgi_ev_t * cgiev, char *left, char *right)
 {
 	char *ptr;
 	int len;
@@ -29,8 +27,7 @@ add_envp(pool_t *p, cgi_ev_t * cgiev, char *left, char *right)
 
 
 
-int
-cgi_handle(http_conf_t *conf, http_connect_t *con)
+int cgi_handle(http_conf_t *conf, http_connect_t *con)
 {
 	con->next_handle = NULL;
 

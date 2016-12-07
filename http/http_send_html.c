@@ -1,7 +1,6 @@
 #include <http_send_html.h>
 
-int 
-produce_http_header(http_connect_t *con) 
+int produce_http_header(http_connect_t *con) 
 {
 	char *ptr;
 	string *rb; 
@@ -40,8 +39,7 @@ produce_http_header(http_connect_t *con)
 		return 1;
 }
 
-int 
-http_send_header(http_connect_t *con)
+int http_send_header(http_connect_t *con)
 {
 	response *out;
 	int step_code = UNDEFINED;
@@ -86,8 +84,7 @@ http_send_header(http_connect_t *con)
 	return step_code;
 }
 
-int 
-http_send_body(http_connect_t *con)
+int http_send_body(http_connect_t *con)
 {
 	struct stat sf;
 
@@ -113,8 +110,7 @@ http_send_body(http_connect_t *con)
 	return 1;
 }
 
-int 
-http_send(http_conf_t *conf, http_connect_t *con)
+int http_send(http_conf_t *conf, http_connect_t *con)
 {
 	if(con->out->status_code == HTTP_UNAUTHORIZED) {
 		send_unauthorized(con->fd);

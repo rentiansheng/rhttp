@@ -6,8 +6,7 @@ static int find_header_end(buffer *b);
 
 static void adjust_header(list_buffer *pre, list_buffer *last);
 
-response * 
-response_init(pool_t *p)
+response * response_init(pool_t *p)
 {
 	response *out;
     
@@ -24,8 +23,7 @@ response_init(pool_t *p)
 	return out;
 }
 
-request * 
-request_init(pool_t *p)
+request * request_init(pool_t *p)
 {
 	request *in;
 
@@ -34,8 +32,7 @@ request_init(pool_t *p)
 	return in;
 }
 
-int
-accept_handler(http_conf_t *conf, http_connect_t *con, struct epoll_event *ev)
+int accept_handler(http_conf_t *conf, http_connect_t *con, struct epoll_event *ev)
 {
 
  	con->in = (request *)request_init(con->p); 

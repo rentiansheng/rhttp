@@ -1,8 +1,7 @@
 #include "http_virtual_port.h"
 
 
-void 
-virtual_port_match(http_conf_t *conf, http_connect_t *con)
+void virtual_port_match(http_conf_t *conf, http_connect_t *con)
 {
 	int port ;
 	string *rbport;

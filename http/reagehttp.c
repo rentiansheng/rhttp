@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) Reage
+ * BLOG: http://www.ireage.com
+ */
 #include <stdio.h>
 #include "config.h"
 #include "base.h"

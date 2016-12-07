@@ -1,10 +1,12 @@
 /*
  * Copyright (C) Reage
- * blog:http://www.rhttp.cn
+ * blog:http://www.ireage.com
  */
 #ifndef _CORE_SO_DLFCN_H_
 #define _CORE_SO_DLFCN_H_
+#include "stdio.h"
 #include "dlfcn.h"
+
 
 typedef struct {
 	char *path[255];

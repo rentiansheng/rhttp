@@ -1,7 +1,6 @@
 #include "http_send_page.h"
 
-int
-send_unauthorized(int fd)
+int send_unauthorized(int fd)
 {
 	char msg[2048];
 	
@@ -12,8 +11,7 @@ send_unauthorized(int fd)
 	return write(fd, msg, strlen(msg));
 }
 
-int 
-send_not_find(int fd)
+int send_not_find(int fd)
 {
 	char msg[1024];
 	sprintf(msg, "HTTP/1.1 404 Not Found\r\nConnection: Close\r\nContent-Type: text/html\r\n");
@@ -25,8 +23,7 @@ send_not_find(int fd)
 	return write(fd, msg, strlen(msg));
 }
 
-int 
-send_bad_gateway(int fd)
+int send_bad_gateway(int fd)
 {
 	char msg[1024];
 	sprintf(msg, "HTTP/1.1 502 Bad Gateway\r\nConnection: Close\r\nContent-Type: text/html\r\n");
@@ -39,8 +36,7 @@ send_bad_gateway(int fd)
 }
 
 
-int 
-send_bad_request(int fd)
+int send_bad_request(int fd)
 {
 	char msg[1024];
 	sprintf(msg, "HTTP/1.1 400 Bad Request\r\nConnection: Close\r\nContent-Type: text/html\r\n");

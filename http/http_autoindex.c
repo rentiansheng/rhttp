@@ -40,7 +40,7 @@ int file_handle(http_conf_t *conf, http_connect_t *con)
 		}
 		if(con->out->content_type == NULL ) {
 			con->out->content_type = buffer_init(con->p);
-			buffer_append_str(con->out->content_type, "text/plain", 10, con->p);
+			buffer_append_str(con->p, con->out->content_type, "text/plain", 10);
 
 		}
 				
@@ -70,7 +70,7 @@ int autoindex_handle(http_conf_t *conf, http_connect_t *con)
 	/*memset(uri->ptr, 0, path_len);
 	uri->used = in->uri->len;
 	strncpy(uri->ptr, in->uri->ptr, path_len-1);*/
-	buffer_append_str(uri, in->uri->ptr, in->uri->len, con->p);
+	buffer_append_str(con->p, uri, in->uri->ptr, in->uri->len);
 	buffer_add_str_end(con->p, uri);
 
 
@@ -100,7 +100,7 @@ int autoindex_handle(http_conf_t *conf, http_connect_t *con)
 			string * index = web->index_file;
 			//添加文件分割符号/，
 			if(uri->ptr[uri->used-1] != '/') {
-				buffer_append_char(uri, '/', con->p);
+				buffer_append_char(con->p, uri, '/');
 			}
 			buffer_append_context(con->p, uri, index->ptr, index->len);
 			//buffer->size 有问题， used=15， size=30 不是2的幂

@@ -7,7 +7,7 @@ static int read_http_header(buffer *header, pool_t *p, int fd)
 	char c;
 
 	while(read(fd, &c, 1)) {
-		buffer_append_char(header,c,p);
+		buffer_append_char(p, header, c);
 		if(c == '\n' && header->used >= 2) {
 			char *ptr =  header->ptr + header->used - 2;
 			if(strncasecmp(ptr, "\n\n", 2) == 0) {

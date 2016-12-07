@@ -30,7 +30,7 @@ buffer *buffer_create_size(pool_t *p, size_t len)
 	return b;
 }
 
-void buffer_append_char(buffer *b, char c, pool_t *p)
+void buffer_append_char(pool_t *p, buffer *b, char c)
 {
 	char * ptr;
 
@@ -55,14 +55,14 @@ int buffer_add_str_end(pool_t *p, buffer *b) {
 	return 0;
 }
 
-void buffer_append_str(buffer *b, char *str, int len, pool_t *p)
+void buffer_append_str(pool_t *p, buffer *b, char *str, int len)
 {
 	buffer_prepare_int(p, b, b->used+len);
 	memcpy(b->ptr + b->used, str, len);
 	b->used += len;
 }
 
-void buffer_append_n_str(buffer *b, char *str, int len, pool_t *p)
+void buffer_append_n_str( pool_t *p, buffer *b, char *str, int len)
 {
 	buffer_prepare(p, b, len);
 	strncat(b->ptr, str, len);

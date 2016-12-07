@@ -38,11 +38,11 @@ buffer * buffer_init(pool_t *p);
 
 buffer * buffer_create_size(pool_t *p, size_t len);
 
-void buffer_append_char(buffer *b, char c, pool_t *p);
+void buffer_append_char(pool_t *p, buffer *b, char c);
 
-void buffer_append_str(buffer *b, char *str, int len, pool_t *p);
+void buffer_append_str(pool_t *p, buffer *b, char *str, int len);
 
-void buffer_append_n_str(buffer *b, char *str, int len, pool_t *p);
+void buffer_append_n_str(pool_t *p, buffer *b, char *str, int len);
 
 int buffer_get_word_with_split(buffer *src, string *dst, char split);
 

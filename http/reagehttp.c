@@ -1,6 +1,7 @@
 /*
  * Copyright (C) Reage
  * BLOG: http://www.ireage.com
+ * Mail: reage521@gmail.com
  */
 #include <stdio.h>
 #include "config.h"
@@ -24,7 +25,9 @@ int main(int argc, char *argv[]) {
 	if( err ) {
 		printf("error config\n ");
 	} else {
+		sprintf(argv[0], "rhttp master                                       ");
 		http_daemon(conf);
+		sprintf(argv[0], "rhttp work                                         ");
 		start_accept(conf);	
 	}
 }

@@ -10,6 +10,13 @@
 #include "http_request.h" 
 #include "pool.h"
 
+
+void signal_exit(int no) 
+{
+	kill(0, SIGTERM);
+	exit(0);
+}
+
 int main(int argc, char *argv[]) {
 	char conf_path[255] = "reage.conf";
 	int err ;
@@ -19,6 +26,10 @@ int main(int argc, char *argv[]) {
 	http_conf_t * conf = (http_conf_t *)pcalloc(p, sizeof(http_conf_t));
 	conf->p = p;
 
+ 
+	signal(SIGTERM, signal_exit); //* kill 
+	signal(SIGINT, signal_exit); //按下Ctrl-C得到的结果 
+	signal(SIGQUIT, signal_exit);  //按下Ctrl-得到的结果 
 
 
 	err = config_init(conf_path, conf);
@@ -31,3 +42,5 @@ int main(int argc, char *argv[]) {
 		start_accept(conf);	
 	}
 }
+
+
